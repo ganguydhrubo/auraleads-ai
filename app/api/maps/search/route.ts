@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       `https://nominatim.openstreetmap.org/search?format=json&polygon_geojson=1&limit=5&q=${encodeURIComponent(q)}`,
       {
         headers: {
-          "User-Agent": "CelestiaLeadsPlatform/2.0 (discovery@celestialeads.local)",
+          "User-Agent": "AuraLeadsAI/1.0 (contact@auraleads.online)",
         },
       }
     );

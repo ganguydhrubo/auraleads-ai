@@ -127,7 +127,7 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          Advanced Auto-Send (Browser Extension)
+          Advanced Auto-Send (Browser Automation)
         </button>
       </div>
 
@@ -260,9 +260,11 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
             <div>
               <h4 className="text-sm font-bold text-foreground">Browser Automation Worker</h4>
               <p className="text-xs text-muted-foreground">
-                Bulk sends run through the shared LinkedIn/Instagram automation worker (<code>/workers/social-worker</code>) using
-                your own logged-in session — see Settings → Browser Automation to connect it, and Admin → Automation Job Queue to
-                watch jobs run.
+                Bulk sends run against your own logged-in Instagram/LinkedIn session — see Settings → Browser Automation to
+                connect it.
+                {state.user.role === "admin" && (
+                  <> (Runs on <code>/workers/social-worker</code>; watch job status in Admin → Automation Job Queue.)</>
+                )}
               </p>
             </div>
           </div>

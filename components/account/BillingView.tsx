@@ -49,7 +49,7 @@ export function BillingView() {
         "80 Qualified leads per day",
         "200 DMs per hour pacing limit",
         "Unified DM + Email sequences",
-        "Google Maps executive lookup",
+        "Real business contact enrichment",
         "Priority support access",
       ],
       popular: true,
@@ -116,7 +116,7 @@ export function BillingView() {
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-primary" />
                 {trialDaysRemaining > 0 ? `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining` : "Trial expired"}
-                {" "}(ends {new Date(state.user.trialEndsAt).toLocaleDateString()})
+                {" "}(ends {new Date(state.user.trialEndsAt).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })})
               </span>
             )}
           </div>
@@ -142,7 +142,7 @@ export function BillingView() {
                 onClick={() => setChatOpen(true)}
                 className="px-2.5 py-1 rounded bg-card border border-border text-foreground hover:bg-muted font-medium text-[11px]"
               >
-                Request {tier} ?
+                Request {tier}
               </button>
             ))}
           </div>
@@ -264,7 +264,7 @@ export function BillingView() {
 
             <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 text-xs">
               <div className="flex justify-between font-semibold text-foreground">
-                <span>Celestia Leads {selectedPlanForModal} Subscription</span>
+                <span>AuraLeads AI {selectedPlanForModal} Subscription</span>
                 <span>
                   {selectedPlanForModal === "Silver" ? "$20.00" : selectedPlanForModal === "Gold" ? "$50.00" : "$100.00"}/mo
                 </span>

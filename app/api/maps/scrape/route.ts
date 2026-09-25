@@ -78,21 +78,49 @@ export async function POST(request: NextRequest) {
 
   const overpassQuery = buildOverpassQuery(lat, lng, query);
 
+  // The public Overpass instances reject requests with no descriptive
+  // User-Agent (often with a 406), and any single mirror can be briefly
+  // down — try a short list in order before giving up.
+  const OVERPASS_MIRRORS = [
+    "https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter",
+    "https://overpass.private.coffee/api/interpreter",
+  ];
+
   let elements: any[] = [];
-  try {
-    const res = await fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `data=${encodeURIComponent(overpassQuery)}`,
-      signal: AbortSignal.timeout(20000),
-    });
-    if (!res.ok) {
-      return NextResponse.json({ error: `Overpass API returned ${res.status} — it may be rate-limited, try again shortly.` }, { status: 502 });
+  let lastError = "";
+  let succeeded = false;
+
+  for (const mirror of OVERPASS_MIRRORS) {
+    try {
+      const res = await fetch(mirror, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "AuraLeadsAI/1.0 (+https://auraleads.online; contact@auraleads.online)",
+          Accept: "*/*",
+        },
+        body: `data=${encodeURIComponent(overpassQuery)}`,
+        signal: AbortSignal.timeout(20000),
+      });
+
+      if (!res.ok) {
+        lastError = `${mirror} returned ${res.status}`;
+        continue;
+      }
+
+      const data = await res.json();
+      elements = data.elements || [];
+      succeeded = true;
+      break;
+    } catch (err: any) {
+      lastError = `${mirror} failed: ${err.message}`;
+      continue;
     }
-    const data = await res.json();
-    elements = data.elements || [];
-  } catch (err: any) {
-    return NextResponse.json({ error: "Overpass API request failed or timed out — try again shortly." }, { status: 502 });
+  }
+
+  if (!succeeded) {
+    return NextResponse.json({ error: `All Overpass mirrors failed (${lastError}) — try again shortly.` }, { status: 502 });
   }
 
   const supabase = createSupabaseServerClient();

@@ -65,7 +65,7 @@ const tourSteps = [
     step: 7,
     title: "Competitor Intelligence",
     subtitle: "Tap into audiences already buying your solution.",
-    description: "Identify up to 5 key competitors. Celestia Leads maps their follower base to uncover pre-qualified prospects actively interested in your market.",
+    description: "Identify up to 5 key competitors. AuraLeads AI maps their follower base to uncover pre-qualified prospects actively interested in your market.",
     icon: Users,
   },
   {

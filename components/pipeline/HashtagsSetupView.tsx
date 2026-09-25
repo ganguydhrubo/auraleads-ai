@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Building2,
   Sparkles,
@@ -20,12 +20,20 @@ interface HashtagsSetupViewProps {
 }
 
 export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
-  const { state, updateBusinessProfile, generateHashtagsAI, addHashtag, deleteHashtag } = useApp();
+  const { state, loading, updateBusinessProfile, generateHashtagsAI, addHashtag, deleteHashtag } = useApp();
   const [description, setDescription] = useState(state.businessProfile.description);
   const [region, setRegion] = useState(state.businessProfile.targetRegion);
   const [manualTag, setManualTag] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setDescription(state.businessProfile.description);
+      setRegion(state.businessProfile.targetRegion);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const handleGenerate = async () => {
     if (!description.trim()) return;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   SlidersHorizontal,
   Plus,
@@ -18,12 +18,20 @@ import { useApp } from "@/lib/store/app-store";
 import { FilterCriteria } from "@/lib/types";
 
 export function FiltersView() {
-  const { state, updateFilters } = useApp();
+  const { state, loading, updateFilters } = useApp();
   const [filters, setFilters] = useState<FilterCriteria>(state.filters);
   const [newTheme, setNewTheme] = useState("");
   const [newLocation, setNewLocation] = useState("");
   const [newBlockedKeyword, setNewBlockedKeyword] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // state.filters starts as defaults and only reflects the real saved
+  // values once the async workspace fetch completes — re-sync this form
+  // when that happens, so Save can't overwrite real settings with defaults.
+  useEffect(() => {
+    if (!loading) setFilters(state.filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const handleAddTheme = (e: React.FormEvent) => {
     e.preventDefault();
@@ -196,6 +204,9 @@ export function FiltersView() {
                   className="rounded border-border text-primary"
                 />
               </div>
+              {!filters.followerRange.minEnabled && (
+                <p className="text-[10px] text-muted-foreground">Check the box above to enable this limit</p>
+              )}
               <input
                 type="number"
                 disabled={!filters.followerRange.minEnabled}
@@ -225,6 +236,9 @@ export function FiltersView() {
                   className="rounded border-border text-primary"
                 />
               </div>
+              {!filters.followerRange.maxEnabled && (
+                <p className="text-[10px] text-muted-foreground">Check the box above to enable this limit</p>
+              )}
               <input
                 type="number"
                 disabled={!filters.followerRange.maxEnabled}

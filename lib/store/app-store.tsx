@@ -59,7 +59,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback((message: string, tone: "info" | "error" = "info") => {
     setToast({ message, tone });
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 4000);
+    toastTimer.current = setTimeout(() => setToast(null), 6000);
   }, []);
 
   const supabase = createSupabaseBrowserClient();

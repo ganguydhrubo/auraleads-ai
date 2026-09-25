@@ -14,8 +14,8 @@ import {
   Sparkles,
   ExternalLink,
   Phone,
-  Star,
   Users,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 import { MapsLead } from "@/lib/types";
@@ -113,7 +113,7 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-foreground">Google Maps Leads</h2>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                Verified B2B Places
+                Real B2B Places (OpenStreetMap)
               </span>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
@@ -169,7 +169,7 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
 
       {/* Row Selection Notice */}
       <div className="p-3 bg-muted/40 border border-border rounded-lg flex items-center justify-between text-xs text-muted-foreground">
-        <span>?? Tick leads in the table below to enrich emails or reveal executive decision-makers.</span>
+        <span>Tick leads in the table below to check for real contact emails or executive info from their own website.</span>
         <span className="font-mono text-[11px] text-foreground font-semibold">
           {selectedIds.length} of {filteredLeads.length} selected
         </span>
@@ -224,7 +224,7 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
                 </th>
                 <th className="p-3.5">Business Name & Category</th>
                 <th className="p-3.5">Address & City</th>
-                <th className="p-3.5">Rating & Reviews</th>
+                <th className="p-3.5">Website</th>
                 <th className="p-3.5">Direct Contact</th>
                 <th className="p-3.5">Executives</th>
                 <th className="p-3.5 pr-4 text-right">Actions</th>
@@ -254,13 +254,18 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
                       <div className="text-[10px] text-muted-foreground/80">{lead.city}</div>
                     </td>
                     <td className="p-3.5">
-                      <div className="flex items-center gap-1 font-semibold text-foreground">
-                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                        <span>{lead.rating}</span>
-                        <span className="text-[11px] text-muted-foreground font-normal">
-                          ({lead.reviewsCount})
-                        </span>
-                      </div>
+                      {lead.website ? (
+                        <a
+                          href={lead.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline text-[11px] font-mono flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3 h-3" /> {lead.website.replace(/^https?:\/\//, "").slice(0, 28)}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground text-[11px]">—</span>
+                      )}
                     </td>
                     <td className="p-3.5">
                       {lead.revealed ? (
@@ -330,8 +335,9 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
               <button
                 onClick={() => setSelectedLead(null)}
                 className="p-1 rounded text-muted-foreground hover:text-foreground"
+                aria-label="Close"
               >
-                ?
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-3 text-xs">

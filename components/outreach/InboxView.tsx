@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Mail,
   Send,
@@ -27,7 +27,7 @@ interface InboxViewProps {
 }
 
 export function InboxView({ setCurrentView }: InboxViewProps) {
-  const { state, sendMessage, updateAIReplyRules, refresh, showToast } = useApp();
+  const { state, loading, sendMessage, updateAIReplyRules, refresh, showToast } = useApp();
   const [activeTab, setActiveTab] = useState<"leads" | "users">("leads");
   const [channelFilter, setChannelFilter] = useState<"all" | "instagram" | "email" | "whatsapp" | "x" | "linkedin">("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,6 +35,11 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
   const [replyInput, setReplyInput] = useState("");
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [rules, setRules] = useState<AIReplyRules>(state.aiReplyRules);
+
+  useEffect(() => {
+    if (!loading) setRules(state.aiReplyRules);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const isConnected = state.integrations.instagram.connected;
 

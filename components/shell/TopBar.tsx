@@ -39,7 +39,7 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
   const { state, setTourOpen, updateSettings } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const viewInfo = titlesMap[currentView] || { title: "Celestia Leads", subtitle: "Lead Generation Platform" };
+  const viewInfo = titlesMap[currentView] || { title: "AuraLeads AI", subtitle: "Lead Generation Platform" };
   const unreadConversations = state.conversations.filter((c) => c.unread);
 
   return (

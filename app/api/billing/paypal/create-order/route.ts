@@ -14,7 +14,10 @@ export async function POST(request: NextRequest) {
   try {
     accessToken = await getPaypalAccessToken();
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    // Customers can't set server env vars — log the real cause for whoever
+    // operates this deployment, and show them something actionable instead.
+    console.error("[paypal/create-order] PayPal not configured:", err.message);
+    return NextResponse.json({ error: "Payments aren't available yet — please contact support." }, { status: 500 });
   }
 
   const origin = request.headers.get("origin") || new URL(request.url).origin;

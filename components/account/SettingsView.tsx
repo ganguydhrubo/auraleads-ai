@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Settings,
   Instagram,
@@ -30,7 +30,7 @@ function StatusPill({ connected, label }: { connected: boolean; label?: string }
 }
 
 export function SettingsView() {
-  const { state, updateSettings, refresh } = useApp();
+  const { state, loading, updateSettings, refresh } = useApp();
   const [activeTab, setActiveTab] = useState<"platforms" | "automation" | "preferences">("platforms");
 
   return (
@@ -63,8 +63,8 @@ export function SettingsView() {
 
       {activeTab === "platforms" && (
         <div className="space-y-6">
-          <InstagramGraphCard state={state} refresh={refresh} />
-          <WhatsAppCard state={state} refresh={refresh} />
+          <InstagramGraphCard state={state} loading={loading} refresh={refresh} />
+          <WhatsAppCard state={state} loading={loading} refresh={refresh} />
           <XCard state={state} refresh={refresh} />
           <GmailCard state={state} refresh={refresh} />
         </div>
@@ -76,9 +76,12 @@ export function SettingsView() {
             <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
             <p>
               LinkedIn has no public API for outreach, and Instagram's official Hashtag Search API doesn't expose post
-              authors. Both sections below run a real headless browser against <strong>your own logged-in session</strong> on
-              a separate worker service you deploy (see <code>/workers/social-worker</code>). This is outside each
-              platform's supported integration path and can result in account restrictions — keep volumes low.
+              authors. Both sections below run a real headless browser against <strong>your own logged-in session</strong>.
+              This is outside each platform's supported integration path and can result in account restrictions — keep
+              volumes low.
+              {state.user.role === "admin" && (
+                <> (Runs on a separate worker service you deploy — see <code>/workers/social-worker</code>.)</>
+              )}
             </p>
           </div>
           <LinkedInAutomationCard state={state} refresh={refresh} />
@@ -166,12 +169,29 @@ function CardShell({ icon, iconColor, title, desc, connected, children }: any) {
   );
 }
 
-function InstagramGraphCard({ state, refresh }: any) {
+function InstagramGraphCard({ state, loading, refresh }: any) {
   const [appId, setAppId] = useState(state.integrations.instagram.appId || "");
   const [appSecret, setAppSecret] = useState(state.integrations.instagram.appSecret || "");
   const [token, setToken] = useState(state.integrations.instagram.token || "");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [verifyToken, setVerifyToken] = useState("");
+
+  useEffect(() => {
+    if (!loading) {
+      setAppId(state.integrations.instagram.appId || "");
+      setAppSecret(state.integrations.instagram.appSecret || "");
+      setToken(state.integrations.instagram.token || "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
+
+  useEffect(() => {
+    fetch("/api/config/verify-token")
+      .then((r) => r.json())
+      .then((d) => d.verifyToken && setVerifyToken(d.verifyToken))
+      .catch(() => {});
+  }, []);
 
   const verify = async () => {
     setStatus("loading");
@@ -202,22 +222,22 @@ function InstagramGraphCard({ state, refresh }: any) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Meta App ID</label>
-          <input value={appId} onChange={(e) => setAppId(e.target.value)} placeholder="e.g. 198273910283921" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+          <input value={appId} onChange={(e) => setAppId(e.target.value)} placeholder="e.g. 198273910283921" autoComplete="off" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
         </div>
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Meta App Secret</label>
-          <input type="password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} placeholder="••••••••••••••••" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+          <input type="password" autoComplete="new-password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} placeholder="••••••••••••••••" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
         </div>
         <div className="sm:col-span-2 space-y-1">
           <label className="font-semibold text-foreground">Page Access Token (long-lived)</label>
-          <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="EAAG... with instagram_manage_messages scope" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
+          <input type="password" autoComplete="new-password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="EAAG... with instagram_manage_messages scope" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
         </div>
       </div>
 
       <div className="p-4 rounded-xl bg-muted/40 border border-border space-y-2 text-xs">
         <span className="font-bold text-foreground block">Webhook Configuration (Meta App Dashboard)</span>
         <div className="text-muted-foreground text-[11px]">Callback URL: <span className="font-mono">{typeof window !== "undefined" ? window.location.origin : ""}/api/webhooks/instagram</span></div>
-        <div className="text-muted-foreground text-[11px]">Verify Token: <span className="font-mono">{state.integrations.instagram.verifyToken || "set META_VERIFY_TOKEN in your env"}</span></div>
+        <div className="text-muted-foreground text-[11px]">Verify Token: <span className="font-mono">{state.integrations.instagram.verifyToken || verifyToken || "Loading..."}</span></div>
       </div>
 
       {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
@@ -232,12 +252,20 @@ function InstagramGraphCard({ state, refresh }: any) {
   );
 }
 
-function WhatsAppCard({ state, refresh }: any) {
+function WhatsAppCard({ state, loading, refresh }: any) {
   const [phoneNumberId, setPhoneNumberId] = useState(state.integrations.whatsapp.phoneNumberId || "");
   const [businessAccountId, setBusinessAccountId] = useState(state.integrations.whatsapp.businessAccountId || "");
   const [token, setToken] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (!loading) {
+      setPhoneNumberId(state.integrations.whatsapp.phoneNumberId || "");
+      setBusinessAccountId(state.integrations.whatsapp.businessAccountId || "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const verify = async () => {
     setStatus("loading");
@@ -262,15 +290,15 @@ function WhatsAppCard({ state, refresh }: any) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Phone Number ID</label>
-          <input value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+          <input value={phoneNumberId} onChange={(e) => setPhoneNumberId(e.target.value)} autoComplete="off" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
         </div>
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Business Account ID</label>
-          <input value={businessAccountId} onChange={(e) => setBusinessAccountId(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+          <input value={businessAccountId} onChange={(e) => setBusinessAccountId(e.target.value)} autoComplete="off" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
         </div>
         <div className="sm:col-span-2 space-y-1">
           <label className="font-semibold text-foreground">Permanent Access Token</label>
-          <input type="password" value={token} onChange={(e) => setToken(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
+          <input type="password" autoComplete="new-password" value={token} onChange={(e) => setToken(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
         </div>
       </div>
       {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
@@ -313,10 +341,10 @@ function XCard({ state, refresh }: any) {
   return (
     <CardShell icon={<Twitter className="w-5 h-5" />} iconColor="text-sky-500" title="X (Twitter) API v2" desc="Paste your own app + access tokens from developer.x.com — no OAuth redirect needed since it's your own account." connected={state.integrations.x.connected}>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-        <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="API Key" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
-        <input type="password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} placeholder="API Secret" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
-        <input type="password" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} placeholder="Access Token" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
-        <input type="password" value={accessSecret} onChange={(e) => setAccessSecret(e.target.value)} placeholder="Access Token Secret" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+        <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="API Key" autoComplete="off" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+        <input type="password" autoComplete="new-password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} placeholder="API Secret" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+        <input type="password" autoComplete="new-password" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} placeholder="Access Token" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+        <input type="password" autoComplete="new-password" value={accessSecret} onChange={(e) => setAccessSecret(e.target.value)} placeholder="Access Token Secret" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
       </div>
       {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
       <div className="flex justify-end">
@@ -380,9 +408,9 @@ function GmailCard({ state, refresh }: any) {
         ))}
         {state.integrations.gmail.accounts.length === 0 && <p className="text-xs text-muted-foreground">No Gmail accounts connected yet.</p>}
       </div>
-      <form onSubmit={connect} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="outreach@agency.com" className="text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground" />
-        <input type="password" required value={appPassword} onChange={(e) => setAppPassword(e.target.value)} placeholder="16-character App Password" className="text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+      <form onSubmit={connect} autoComplete="off" className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="outreach@agency.com" autoComplete="off" className="text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground" />
+        <input type="password" autoComplete="new-password" required value={appPassword} onChange={(e) => setAppPassword(e.target.value)} placeholder="16-character App Password" className="text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
         <button type="submit" disabled={status === "loading"} className="sm:col-span-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold border border-border hover:bg-muted flex items-center justify-center gap-2 disabled:opacity-50">
           {status === "loading" && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Verify & Connect Inbox
@@ -432,7 +460,7 @@ function LinkedInAutomationCard({ state, refresh }: any) {
         </div>
       ) : (
         <>
-          <input type="password" value={cookie} onChange={(e) => setCookie(e.target.value)} placeholder="li_at cookie value" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
+          <input type="password" autoComplete="new-password" value={cookie} onChange={(e) => setCookie(e.target.value)} placeholder="li_at cookie value" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
           {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
           <div className="flex justify-end">
             <button onClick={save} disabled={status === "loading" || !cookie} className="px-5 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm disabled:opacity-50 flex items-center gap-2">
@@ -485,7 +513,7 @@ function InstagramAutomationCard({ state, refresh }: any) {
         </div>
       ) : (
         <>
-          <input type="password" value={cookie} onChange={(e) => setCookie(e.target.value)} placeholder="sessionid cookie value" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
+          <input type="password" autoComplete="new-password" value={cookie} onChange={(e) => setCookie(e.target.value)} placeholder="sessionid cookie value" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
           {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
           <div className="flex justify-end">
             <button onClick={save} disabled={status === "loading" || !cookie} className="px-5 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm disabled:opacity-50 flex items-center gap-2">

@@ -13,7 +13,7 @@ create table if not exists workspaces (
   name text not null default 'My Workspace',
   domain text,
   plan text not null default 'Trial' check (plan in ('Trial','Silver','Gold','Platinum')),
-  trial_ends_at timestamptz not null default (now() + interval '14 days'),
+  trial_ends_at timestamptz not null default (now() + interval '7 days'),
   credits_remaining int not null default 100,
   created_at timestamptz not null default now()
 );

@@ -42,7 +42,7 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
           <button
             onClick={() => setCurrentView("dashboard")}
             className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white shadow-md font-bold text-lg"
-            title="Celestia Leads"
+            title="AuraLeads AI"
           >
             CL
           </button>
@@ -396,20 +396,22 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
               </div>
             </button>
 
-            <button
-              onClick={() => setCurrentView("admin")}
-              className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center gap-2.5 ${
-                isNavActive("admin")
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 text-rose-500" />
-              <div>
-                <div className="text-[13px] font-medium">Admin Panel</div>
-                <div className="text-[10px] text-muted-foreground/80 leading-none">Scraper & Meta pools</div>
-              </div>
-            </button>
+            {state.user.role === "admin" && (
+              <button
+                onClick={() => setCurrentView("admin")}
+                className={`w-full text-left px-3 py-2 rounded-md transition-colors flex items-center gap-2.5 ${
+                  isNavActive("admin")
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4 text-rose-500" />
+                <div>
+                  <div className="text-[13px] font-medium">Admin Panel</div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-none">Automation & worker nodes</div>
+                </div>
+              </button>
+            )}
           </div>
         </div>
       </div>

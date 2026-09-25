@@ -25,10 +25,11 @@ interface LocationOption {
   id: string;
   name: string;
   type: string;
-  area: string;
+  area: string | null;
   lat: number;
   lng: number;
   hasPolygon: boolean;
+  geojson?: any;
 }
 
 const sampleLocations: LocationOption[] = [
@@ -103,28 +104,27 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
         const map = mapInstanceRef.current;
         map.setView([selectedLocation.lat, selectedLocation.lng], 12);
 
-        // Clear existing polygon
         if (polygonLayerRef.current) {
           map.removeLayer(polygonLayerRef.current);
         }
 
-        // Draw illustrative boundary polygon
-        const offset = 0.035;
-        const bounds = [
-          [selectedLocation.lat + offset, selectedLocation.lng - offset],
-          [selectedLocation.lat + offset * 1.2, selectedLocation.lng + offset],
-          [selectedLocation.lat - offset * 0.8, selectedLocation.lng + offset * 1.1],
-          [selectedLocation.lat - offset * 1.1, selectedLocation.lng - offset * 0.9],
-        ];
-
-        const polygon = L.polygon(bounds as any, {
-          color: "#3B50F5",
-          fillColor: "#3B50F5",
-          fillOpacity: 0.18,
-          weight: 2,
-        }).addTo(map);
-
-        polygonLayerRef.current = polygon;
+        if (selectedLocation.geojson) {
+          // Real OpenStreetMap boundary from Nominatim.
+          polygonLayerRef.current = L.geoJSON(selectedLocation.geojson, {
+            style: { color: "#3B50F5", fillColor: "#3B50F5", fillOpacity: 0.18, weight: 2 },
+          }).addTo(map);
+        } else {
+          // No real boundary available for this location — show the actual
+          // search radius used by discovery (5km), not a fabricated shape.
+          polygonLayerRef.current = L.circle([selectedLocation.lat, selectedLocation.lng], {
+            radius: 5000,
+            color: "#3B50F5",
+            fillColor: "#3B50F5",
+            fillOpacity: 0.12,
+            weight: 2,
+            dashArray: "6 4",
+          }).addTo(map);
+        }
       }
     }
 
@@ -161,7 +161,7 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
             <Compass className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Google Maps Discovery Engine</h2>
+            <h2 className="text-base font-semibold text-foreground">OpenStreetMap Discovery Engine</h2>
             <p className="text-xs text-muted-foreground">
               Live Nominatim OpenStreetMap geocoding with boundary preview and background business scraping queue.
             </p>
@@ -196,7 +196,7 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Type any city worldwide. Real OpenStreetMap boundary polygon renders instantly.
+              Type any city worldwide. Shows the real OpenStreetMap boundary when available, or an approximate 5km search radius otherwise.
             </p>
 
             <div className="relative">

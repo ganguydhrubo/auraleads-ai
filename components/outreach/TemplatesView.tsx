@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FileText,
   Sparkles,
@@ -15,11 +15,16 @@ import { useApp } from "@/lib/store/app-store";
 import { MessageTemplates } from "@/lib/types";
 
 export function TemplatesView() {
-  const { state, updateTemplates } = useApp();
+  const { state, loading, updateTemplates } = useApp();
   const [activeTab, setActiveTab] = useState<"hashtag" | "competitor">("hashtag");
   const [templates, setTemplates] = useState<MessageTemplates>(state.templates);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [previewLeadIndex, setPreviewLeadIndex] = useState(0);
+
+  useEffect(() => {
+    if (!loading) setTemplates(state.templates);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   const sampleLead = state.instagramLeads[previewLeadIndex] || state.instagramLeads[0];
 
@@ -199,7 +204,7 @@ export function TemplatesView() {
           <div className="flex items-center justify-between pb-3 border-b border-border">
             <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
               <Eye className="w-3.5 h-3.5 text-primary" />
-              <span>Live Profile Preview</span>
+              <span>Template Preview</span>
             </div>
             {sampleLead && (
               <span className="text-[10px] font-mono text-muted-foreground">
@@ -211,7 +216,7 @@ export function TemplatesView() {
           {/* Rendered DM Output */}
           <div className="space-y-2">
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-              Generated Instagram DM
+              Template Preview (Instagram DM)
             </span>
             <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 text-xs text-foreground leading-relaxed">
               {getCompiledDm()}
@@ -222,7 +227,7 @@ export function TemplatesView() {
           {activeTab === "hashtag" && (
             <div className="space-y-2 pt-2">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                Generated Cold Email
+                Template Preview (Cold Email)
               </span>
               <div className="p-3.5 rounded-xl bg-muted/40 border border-border text-xs text-foreground font-mono whitespace-pre-line leading-relaxed">
                 {getCompiledEmail()}

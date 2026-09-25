@@ -70,6 +70,16 @@ export function AdminView() {
     failed: "bg-rose-500/10 text-rose-600",
   };
 
+  // Defense-in-depth: the sidebar already hides the nav link for non-admins,
+  // but currentView is just client state — guard the view itself too.
+  if (state.user.role !== "admin") {
+    return (
+      <div className="max-w-md mx-auto text-center py-16 text-sm text-muted-foreground">
+        This section is only available to workspace admins.
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="bg-card border border-border rounded-xl p-5 shadow-sm flex items-center justify-between">
