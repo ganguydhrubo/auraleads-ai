@@ -25,6 +25,9 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [ready, setReady] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [resendEmail, setResendEmail] = useState("");
+  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -33,10 +36,12 @@ function ResetPasswordForm() {
     if (code) {
       // This project uses the PKCE flow: the emailed link redirects here
       // with ?code=... instead of a #access_token= hash, and the code has
-      // to be exchanged explicitly for a session.
+      // to be exchanged explicitly for a session. Codes are single-use —
+      // an old/reused link will fail here with a real error.
       supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
         if (exchangeError) setError(exchangeError.message);
         else setReady(true);
+        setChecked(true);
       });
       return;
     }
@@ -51,10 +56,21 @@ function ResetPasswordForm() {
 
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) setReady(true);
+      setChecked(true);
     });
 
     return () => subscription.unsubscribe();
   }, [searchParams]);
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResendStatus("loading");
+    const supabase = createSupabaseBrowserClient();
+    const { error: resendError } = await supabase.auth.resetPasswordForEmail(resendEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setResendStatus(resendError ? "error" : "sent");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,10 +114,44 @@ function ResetPasswordForm() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-card py-8 px-6 sm:px-10 border border-border rounded-2xl shadow-xl space-y-6">
-          {!ready && !success && (
-            <p className="text-xs text-muted-foreground text-center">
-              Open this page from the link in your password reset email.
-            </p>
+          {!checked && !success && (
+            <p className="text-xs text-muted-foreground text-center">Checking your link...</p>
+          )}
+
+          {checked && !ready && !success && (
+            <div className="space-y-4 text-xs">
+              <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-rose-600 font-semibold text-center">
+                {error || "This link is missing, expired, or already used."}
+              </div>
+
+              {resendStatus === "sent" ? (
+                <p className="text-center text-muted-foreground">
+                  New link sent to <strong>{resendEmail}</strong> — check your inbox.
+                </p>
+              ) : (
+                <form onSubmit={handleResend} className="space-y-3">
+                  <p className="text-center text-muted-foreground">Enter your email to get a fresh reset link:</p>
+                  <input
+                    type="email"
+                    required
+                    value={resendEmail}
+                    onChange={(e) => setResendEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground text-center"
+                  />
+                  <button
+                    type="submit"
+                    disabled={resendStatus === "loading"}
+                    className="w-full py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-sm disabled:opacity-50"
+                  >
+                    {resendStatus === "loading" ? "Sending..." : "Send Reset Link"}
+                  </button>
+                  {resendStatus === "error" && (
+                    <p className="text-center text-rose-600">Couldn't send — try again in a moment.</p>
+                  )}
+                </form>
+              )}
+            </div>
           )}
 
           {success ? (
