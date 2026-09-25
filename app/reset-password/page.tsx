@@ -30,36 +30,24 @@ function ResetPasswordForm() {
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
 
   useEffect(() => {
-    const supabase = createSupabaseBrowserClient();
-
-    const code = searchParams.get("code");
-    if (code) {
-      // This project uses the PKCE flow: the emailed link redirects here
-      // with ?code=... instead of a #access_token= hash, and the code has
-      // to be exchanged explicitly for a session. Codes are single-use —
-      // an old/reused link will fail here with a real error.
-      supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
-        if (exchangeError) setError(exchangeError.message);
-        else setReady(true);
-        setChecked(true);
-      });
+    // The emailed link points at /auth/confirm, a server route that verifies
+    // the token via token_hash + verifyOtp and sets the session cookie
+    // *before* redirecting here — this works from any device/browser,
+    // unlike a client-side PKCE code exchange (which needs the same browser
+    // that requested the reset to still have the code verifier stored).
+    // So by the time this page loads, a valid session should already exist.
+    const linkError = searchParams.get("error");
+    if (linkError) {
+      setError(linkError === "invalid_link" ? "This link is invalid or has expired." : linkError);
+      setChecked(true);
       return;
     }
 
-    // Fallback for the older implicit flow (#access_token= hash), which
-    // detectSessionInUrl picks up automatically.
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") setReady(true);
-    });
-
+    const supabase = createSupabaseBrowserClient();
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) setReady(true);
       setChecked(true);
     });
-
-    return () => subscription.unsubscribe();
   }, [searchParams]);
 
   const handleResend = async (e: React.FormEvent) => {

@@ -180,7 +180,19 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const membership = await getWorkspaceMembership(supabase, user.id);
+  let membership = await getWorkspaceMembership(supabase, user.id);
+
+  // Safety net: a confirmed/authenticated user with no workspace yet (e.g. an
+  // entry path that skipped the usual bootstrap step) gets one created here
+  // rather than silently rendering an empty, broken dashboard.
+  if (!membership) {
+    await supabase.rpc("bootstrap_workspace", {
+      p_user_id: user.id,
+      p_workspace_name: user.email?.split("@")[0] || "My Workspace",
+    });
+    membership = await getWorkspaceMembership(supabase, user.id);
+  }
+
   if (!membership) return null;
 
   const workspaceId = membership.workspace_id;
