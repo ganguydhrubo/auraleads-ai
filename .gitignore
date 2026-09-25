@@ -16,3 +16,5 @@ workers/*/dist/
 workers/*/.env
 .vercel
 .env*
+
+supabase/.temp/
