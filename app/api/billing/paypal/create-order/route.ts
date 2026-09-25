@@ -1,0 +1,49 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionWorkspaceId } from "@/lib/supabase/server";
+import { getPaypalAccessToken, paypalHost, planPrice } from "@/lib/paypal";
+
+export async function POST(request: NextRequest) {
+  const session = await getSessionWorkspaceId();
+  if (!session) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const { plan } = await request.json();
+  const amount = planPrice(plan);
+  if (!amount) return NextResponse.json({ error: "Unknown plan" }, { status: 400 });
+
+  let accessToken: string;
+  try {
+    accessToken = await getPaypalAccessToken();
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+
+  const origin = request.headers.get("origin") || new URL(request.url).origin;
+
+  const res = await fetch(`${paypalHost()}/v2/checkout/orders`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      intent: "CAPTURE",
+      purchase_units: [
+        {
+          description: `AuraLeads AI — ${plan} plan (monthly)`,
+          amount: { currency_code: "USD", value: amount },
+        },
+      ],
+      application_context: {
+        return_url: `${origin}/api/billing/paypal/capture-order?plan=${encodeURIComponent(plan)}`,
+        cancel_url: `${origin}/app`,
+      },
+    }),
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    return NextResponse.json({ error: data.message || "Could not create PayPal order." }, { status: 502 });
+  }
+
+  const approveUrl = (data.links || []).find((l: any) => l.rel === "approve")?.href;
+  if (!approveUrl) return NextResponse.json({ error: "PayPal did not return an approval link." }, { status: 502 });
+
+  return NextResponse.json({ approveUrl, orderId: data.id });
+}

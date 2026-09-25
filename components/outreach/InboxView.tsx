@@ -28,7 +28,7 @@ interface InboxViewProps {
 export function InboxView({ setCurrentView }: InboxViewProps) {
   const { state, sendMessage, updateAIReplyRules } = useApp();
   const [activeTab, setActiveTab] = useState<"leads" | "users">("leads");
-  const [channelFilter, setChannelFilter] = useState<"all" | "instagram" | "email">("all");
+  const [channelFilter, setChannelFilter] = useState<"all" | "instagram" | "email" | "whatsapp" | "x" | "linkedin">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedConvId, setSelectedConvId] = useState<string>(state.conversations[0]?.id || "");
   const [replyInput, setReplyInput] = useState("");
@@ -148,18 +148,18 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
                 className="w-full text-xs pl-8 pr-3 py-1.5 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
               />
             </div>
-            <div className="flex gap-1 text-[11px]">
-              {(["all", "instagram", "email"] as const).map((chan) => (
+            <div className="flex gap-1 text-[11px] flex-wrap">
+              {(["all", "instagram", "whatsapp", "x", "linkedin", "email"] as const).map((chan) => (
                 <button
                   key={chan}
                   onClick={() => setChannelFilter(chan)}
-                  className={`flex-1 py-1 rounded text-center font-medium capitalize ${
+                  className={`flex-1 py-1 rounded text-center font-medium capitalize min-w-[52px] ${
                     channelFilter === chan
                       ? "bg-primary text-white"
                       : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                 >
-                  {chan}
+                  {chan === "x" ? "X" : chan}
                 </button>
               ))}
             </div>

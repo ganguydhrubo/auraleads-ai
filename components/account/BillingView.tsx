@@ -6,16 +6,13 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
-  Flame,
-  AlertTriangle,
-  ArrowRight,
   ShieldCheck,
   Zap,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 
 export function BillingView() {
-  const { state, upgradePlan, setChatOpen } = useApp();
+  const { state, setChatOpen } = useApp();
   const [selectedPlanForModal, setSelectedPlanForModal] = useState<"Silver" | "Gold" | "Platinum" | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -76,30 +73,37 @@ export function BillingView() {
     },
   ];
 
-  const handleCheckout = () => {
+  const [checkoutError, setCheckoutError] = useState("");
+
+  const handleCheckout = async () => {
     if (!selectedPlanForModal) return;
     setIsProcessing(true);
-    setTimeout(() => {
-      upgradePlan(selectedPlanForModal);
+    setCheckoutError("");
+
+    try {
+      const createRes = await fetch("/api/billing/paypal/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlanForModal }),
+      });
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.error || "Could not create PayPal order.");
+
+      if (createData.approveUrl) {
+        // Real PayPal Checkout — hand off to PayPal's own hosted page.
+        window.location.href = createData.approveUrl;
+        return;
+      }
+    } catch (err: any) {
       setIsProcessing(false);
-      setSelectedPlanForModal(null);
-      alert(`?? Successfully subscribed to ${selectedPlanForModal} plan! Your quotas have updated immediately.`);
-    }, 1200);
+      setCheckoutError(err.message);
+    }
   };
+
+  const trialDaysRemaining = Math.max(0, Math.ceil((new Date(state.user.trialEndsAt).getTime() - Date.now()) / 86400000));
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Scarcity Banner */}
-      <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center justify-between text-xs text-rose-800 dark:text-rose-300 shadow-2xs">
-        <div className="flex items-center gap-2">
-          <Flame className="w-4 h-4 text-rose-600 fill-rose-600/20 shrink-0" />
-          <span className="font-semibold">
-            Early Access Capacity: Only 3 spots remaining in current server batch!
-          </span>
-        </div>
-        <span className="text-[11px] font-mono text-rose-600 font-bold">Seats Pool: 97/100 claimed</span>
-      </div>
-
       {/* Current Plan Overview Card */}
       <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2">
@@ -107,9 +111,13 @@ export function BillingView() {
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
               {state.user.plan} Active
             </span>
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5 text-primary" /> 7 days remaining (ends 10/02/2026)
-            </span>
+            {state.user.plan === "Trial" && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-primary" />
+                {trialDaysRemaining > 0 ? `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining` : "Trial expired"}
+                {" "}(ends {new Date(state.user.trialEndsAt).toLocaleDateString()})
+              </span>
+            )}
           </div>
           <h2 className="text-lg font-bold text-foreground">Current Plan Quotas</h2>
           <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-1">
@@ -235,7 +243,7 @@ export function BillingView() {
         <span className="font-mono text-[11px]">256-bit TLS Encrypted</span>
       </div>
 
-      {/* Simulated PayPal Modal */}
+      {/* PayPal Checkout Modal — hands off to PayPal's real hosted checkout */}
       {selectedPlanForModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 space-y-5 animate-in zoom-in-95">
@@ -264,13 +272,19 @@ export function BillingView() {
               </p>
             </div>
 
+            {checkoutError && (
+              <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 rounded-lg text-[11px] text-rose-600 font-semibold">
+                {checkoutError}
+              </div>
+            )}
+
             <button
               onClick={handleCheckout}
               disabled={isProcessing}
               className="w-full py-3 rounded-xl bg-[#0070BA] text-white text-xs font-bold hover:bg-[#005ea6] shadow-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
             >
               <Sparkles className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
-              <span>{isProcessing ? "Authorizing Subscription..." : "Pay with PayPal or Card"}</span>
+              <span>{isProcessing ? "Redirecting to PayPal..." : "Pay with PayPal or Card"}</span>
             </button>
           </div>
         </div>

@@ -438,7 +438,12 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
             </div>
           </div>
           <button
-            onClick={() => alert("Session logout: in demo mode the session is persistent.")}
+            onClick={async () => {
+              const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+              const supabase = createSupabaseBrowserClient();
+              await supabase.auth.signOut();
+              window.location.href = "/login";
+            }}
             className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-muted transition-colors"
             title="Logout"
           >

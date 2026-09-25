@@ -3,7 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, ArrowRight, Lock, Mail, Building, CheckCircle2 } from "lucide-react";
+import { Sparkles, Lock, Mail, Building, CheckCircle2 } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+export const dynamic = "force-dynamic";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -11,25 +14,58 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [checkEmail, setCheckEmail] = useState(false);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      localStorage.setItem(
-        "auraleads_user_session",
-        JSON.stringify({
-          email,
-          company,
-          workspace: company.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-          role: "owner",
-          plan: "Trial",
-          loginTime: new Date().toISOString(),
-        })
-      );
-      router.push("/app");
-    }, 800);
+    setError("");
+
+    const supabase = createSupabaseBrowserClient();
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.session) {
+      // Email confirmation is required by the Supabase project settings.
+      setCheckEmail(true);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      await supabase.rpc("bootstrap_workspace", {
+        p_user_id: data.user.id,
+        p_workspace_name: company,
+      });
+    }
+
+    router.refresh();
+    router.push("/app");
   };
+
+  if (checkEmail) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4 text-center space-y-3">
+        <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+        <h2 className="text-xl font-bold text-foreground">Check your inbox</h2>
+        <p className="text-sm text-muted-foreground max-w-sm">
+          We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account, then sign in.
+        </p>
+        <Link href="/login" className="text-primary font-semibold text-sm hover:underline">
+          Back to sign in
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 selection:bg-primary selection:text-white">
@@ -55,6 +91,12 @@ export default function SignupPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-card py-8 px-6 sm:px-10 border border-border rounded-2xl shadow-xl space-y-6">
+          {error && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg text-xs text-rose-600 font-semibold">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-4 text-xs" onSubmit={handleSignup}>
             <div className="space-y-1.5">
               <label className="font-semibold text-foreground">Company / Agency Name</label>

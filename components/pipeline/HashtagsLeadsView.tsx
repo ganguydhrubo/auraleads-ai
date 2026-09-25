@@ -46,12 +46,11 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
     return true;
   });
 
-  const handleStartGeneration = () => {
+  const handleStartGeneration = async () => {
     setIsGenerating(true);
-    setTimeout(() => {
-      startLeadGenerationCycle();
-      setIsGenerating(false);
-    }, 1000);
+    const result = await startLeadGenerationCycle();
+    setIsGenerating(false);
+    if (!result.ok) alert(result.message);
   };
 
   const handleExport = () => {
@@ -241,9 +240,9 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
                         </button>
                         {lead.decision === "matched" && (
                           <button
-                            onClick={() => {
-                              sendInstagramLeadDm(lead.id);
-                              alert(`Personalized DM queued and sent to @${lead.username}! Check Outreach Inbox.`);
+                            onClick={async () => {
+                              const result = await sendInstagramLeadDm(lead.id);
+                              alert(result.message);
                             }}
                             disabled={lead.dmSent}
                             className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 shadow-2xs ${
@@ -348,10 +347,10 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
                 </div>
 
                 <button
-                  onClick={() => {
-                    sendInstagramLeadDm(selectedLead.id);
+                  onClick={async () => {
+                    const result = await sendInstagramLeadDm(selectedLead.id);
                     setSelectedLead(null);
-                    alert(`Message dispatched to @${selectedLead.username}!`);
+                    alert(result.message);
                   }}
                   disabled={selectedLead.decision !== "matched" || selectedLead.dmSent}
                   className="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40"

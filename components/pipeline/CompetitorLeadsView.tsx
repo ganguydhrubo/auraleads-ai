@@ -237,9 +237,9 @@ export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => {
-                            sendInstagramLeadDm(lead.id);
-                            alert(`Competitor personalized DM sent to @${lead.username}!`);
+                          onClick={async () => {
+                            const result = await sendInstagramLeadDm(lead.id);
+                            alert(result.message);
                           }}
                           disabled={lead.dmSent}
                           className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
@@ -291,9 +291,10 @@ export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps
                 Close
               </button>
               <button
-                onClick={() => {
-                  sendInstagramLeadDm(selectedLead.id);
+                onClick={async () => {
+                  const result = await sendInstagramLeadDm(selectedLead.id);
                   setSelectedLead(null);
+                  alert(result.message);
                 }}
                 disabled={selectedLead.dmSent}
                 className="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40"

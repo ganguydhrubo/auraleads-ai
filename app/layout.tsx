@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AppProvider } from "@/lib/store/app-store";
 
 export const metadata: Metadata = {
   title: "AuraLeads AI — Autonomous Instagram & Google Maps Lead Generation Engine",
@@ -29,7 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased min-h-screen bg-background text-foreground">
-        <AppProvider>{children}</AppProvider>
+        {children}
       </body>
     </html>
   );

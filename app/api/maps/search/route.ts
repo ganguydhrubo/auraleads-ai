@@ -23,34 +23,36 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
-    const results = data.map((item: any) => ({
-      id: item.place_id?.toString() || Math.random().toString(),
-      name: item.display_name,
-      type: item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : "Location",
-      lat: parseFloat(item.lat),
-      lng: parseFloat(item.lon),
-      area: "~ " + (Math.floor(10 + Math.random() * 800)) + " km²",
-      hasPolygon: !!item.geojson,
-      geojson: item.geojson || null,
-      boundingbox: item.boundingbox || null,
-    }));
+
+    // Real approximate area from the bounding box Nominatim returns (haversine),
+    // not a fabricated number — only shown when a boundingbox is actually present.
+    function bboxAreaKm2(bbox: string[] | null): number | null {
+      if (!bbox || bbox.length !== 4) return null;
+      const [south, north, west, east] = bbox.map(parseFloat);
+      const R = 6371;
+      const latKm = ((north - south) * Math.PI * R) / 180;
+      const midLatRad = ((north + south) / 2) * (Math.PI / 180);
+      const lngKm = ((east - west) * Math.PI * R * Math.cos(midLatRad)) / 180;
+      return Math.abs(latKm * lngKm);
+    }
+
+    const results = data.map((item: any) => {
+      const areaKm2 = bboxAreaKm2(item.boundingbox || null);
+      return {
+        id: item.place_id?.toString() || item.osm_id?.toString() || `${item.lat}_${item.lon}`,
+        name: item.display_name,
+        type: item.type ? item.type.charAt(0).toUpperCase() + item.type.slice(1) : "Location",
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon),
+        area: areaKm2 ? `${areaKm2 < 10 ? areaKm2.toFixed(1) : Math.round(areaKm2)} km²` : null,
+        hasPolygon: !!item.geojson,
+        geojson: item.geojson || null,
+        boundingbox: item.boundingbox || null,
+      };
+    });
 
     return NextResponse.json({ results });
   } catch (error: any) {
-    // Return graceful fallback
-    return NextResponse.json({
-      results: [
-        {
-          id: "fallback_1",
-          name: `${q}, United States`,
-          type: "City",
-          lat: 40.7128,
-          lng: -74.006,
-          area: "~ 450 km²",
-          hasPolygon: true,
-        },
-      ],
-      warning: "Used fallback geocoding service",
-    });
+    return NextResponse.json({ results: [], error: "Geocoding service unavailable, try again." }, { status: 502 });
   }
 }

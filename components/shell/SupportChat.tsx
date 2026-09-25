@@ -1,51 +1,39 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageCircle, X, Send, Bot, User, Sparkles } from "lucide-react";
+import { MessageCircle, X, Send, Bot } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function SupportChat() {
-  const { chatOpen, setChatOpen } = useApp();
+  const { chatOpen, setChatOpen, state } = useApp();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<{ sender: "user" | "support"; text: string; time: string }[]>([
     {
       sender: "support",
-      text: "?? Hi! Welcome to Celestia Leads. How can our team help you with your lead generation workflow today?",
+      text: "Hi! Send us a message and it'll reach the team directly — we reply by email, usually within a business day.",
       time: "Just now",
     },
   ]);
 
-  const handleSend = (textToSend?: string) => {
+  const handleSend = async (textToSend?: string) => {
     const text = textToSend || input;
     if (!text.trim()) return;
 
-    const userMsg = {
-      sender: "user" as const,
-      text,
-      time: "Just now",
-    };
-
-    setMessages((prev) => [...prev, userMsg]);
+    setMessages((prev) => [...prev, { sender: "user", text, time: "Just now" }]);
     setInput("");
 
-    // Simulate friendly instant support response
-    setTimeout(() => {
-      let reply = "Thanks for reaching out! Our team has received your note and will review it immediately.";
-      if (text.toLowerCase().includes("free") || text.toLowerCase().includes("plan")) {
-        reply = "?? We've logged your request for early access access! A lead generation specialist will activate your requested limits shortly.";
-      } else if (text.toLowerCase().includes("scraping") || text.toLowerCase().includes("comments")) {
-        reply = "?? The Comments Scraping add-on allows scraping 10,000 comments per daily round across up to 30 hashtags. We've enabled your evaluation pass!";
-      }
+    const supabase = createSupabaseBrowserClient();
+    const { error } = await supabase.from("support_messages").insert({ workspace_id: state.workspaceId, message: text });
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "support",
-          text: reply,
-          time: "Just now",
-        },
-      ]);
-    }, 900);
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "support",
+        text: error ? "Sorry, that didn't send — please try again in a moment." : "Got it — logged to our support queue. We'll follow up by email.",
+        time: "Just now",
+      },
+    ]);
   };
 
   return (
@@ -78,7 +66,7 @@ export function SupportChat() {
                     Open
                   </span>
                 </div>
-                <p className="text-[11px] text-white/80">We usually reply here in a few minutes</p>
+                <p className="text-[11px] text-white/80">We reply by email, usually within a business day</p>
               </div>
             </div>
             <button

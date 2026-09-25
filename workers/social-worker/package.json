@@ -1,0 +1,22 @@
+{
+  "name": "auraleads-social-worker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone poller that runs LinkedIn & Instagram browser-automation jobs queued by the AuraLeads AI app. Deploy separately from Vercel (Railway/Render/a small VPS) — Playwright needs a long-lived process, which serverless functions can't provide.",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "postinstall": "playwright install --with-deps chromium"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.117.1",
+    "dotenv": "^16.4.5",
+    "playwright": "^1.47.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}

@@ -26,6 +26,9 @@ import {
   HelpCircle,
   Play,
   Lock,
+  MessageCircle,
+  Linkedin,
+  Twitter,
 } from "lucide-react";
 
 export function LandingPage() {
@@ -170,8 +173,14 @@ export function LandingPage() {
             <span className="px-3 py-1.5 rounded-lg bg-card border border-border flex items-center gap-1.5 text-foreground shadow-2xs">
               <Mail className="w-3.5 h-3.5 text-primary" /> Gmail (Multi-Inbox Cold Email)
             </span>
-            <span className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-[11px]">
-              WhatsApp, LinkedIn & X (Coming Soon)
+            <span className="px-3 py-1.5 rounded-lg bg-card border border-border flex items-center gap-1.5 text-foreground shadow-2xs">
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp (Business Cloud API)
+            </span>
+            <span className="px-3 py-1.5 rounded-lg bg-card border border-border flex items-center gap-1.5 text-foreground shadow-2xs">
+              <Linkedin className="w-3.5 h-3.5 text-blue-600" /> LinkedIn (Connections & DMs)
+            </span>
+            <span className="px-3 py-1.5 rounded-lg bg-card border border-border flex items-center gap-1.5 text-foreground shadow-2xs">
+              <Twitter className="w-3.5 h-3.5 text-sky-500" /> X (Twitter DMs)
             </span>
           </div>
         </div>

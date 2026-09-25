@@ -3,13 +3,18 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Sparkles, ArrowRight, Lock, Mail, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Sparkles, Lock, Mail, ShieldCheck } from "lucide-react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+
+// This page needs a live user session/auth client at request time, so it
+// can't be statically prerendered at build time (which would require real
+// Supabase env vars just to produce a build).
+export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [workspace, setWorkspace] = useState("primary-org");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -18,24 +23,35 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Simulate multi-tenant authentication & Supabase session
-    setTimeout(() => {
-      if (email && password) {
-        localStorage.setItem(
-          "auraleads_user_session",
-          JSON.stringify({
-            email,
-            workspace,
-            role: "owner",
-            loginTime: new Date().toISOString(),
-          })
-        );
-        router.push("/app");
-      } else {
-        setError("Please enter both email and password.");
-        setLoading(false);
+    const supabase = createSupabaseBrowserClient();
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      const { data: membership } = await supabase
+        .from("workspace_members")
+        .select("workspace_id")
+        .eq("user_id", data.user.id)
+        .maybeSingle();
+
+      if (!membership) {
+        await supabase.rpc("bootstrap_workspace", {
+          p_user_id: data.user.id,
+          p_workspace_name: data.user.email?.split("@")[0] || "My Workspace",
+        });
       }
-    }, 800);
+    }
+
+    router.refresh();
+    router.push("/app");
   };
 
   return (
@@ -69,17 +85,6 @@ export default function LoginPage() {
           )}
 
           <form className="space-y-4 text-xs" onSubmit={handleLogin}>
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Workspace / Organization ID</label>
-              <input
-                type="text"
-                value={workspace}
-                onChange={(e) => setWorkspace(e.target.value)}
-                placeholder="primary-org"
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-            </div>
-
             <div className="space-y-1.5">
               <label className="font-semibold text-foreground">Work Email Address</label>
               <div className="relative">
@@ -125,13 +130,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="pt-2 border-t border-border/80 flex items-center justify-between text-[11px] text-muted-foreground">
+          <div className="pt-2 border-t border-border/80 flex items-center text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" /> Multi-Tenant Role Isolation
             </span>
-            <Link href="/app" className="text-primary font-medium hover:underline">
-              Bypass to App →
-            </Link>
           </div>
         </div>
       </div>

@@ -49,6 +49,7 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
   const [queryInput, setQueryInput] = useState("Marketing Agency");
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeSuccess, setScrapeSuccess] = useState(false);
+  const [scrapeError, setScrapeError] = useState("");
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -136,34 +137,18 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
 
   const handleStartScrape = async () => {
     setIsScraping(true);
+    setScrapeError("");
     const chosenLoc = confirmedLocation ? confirmedLocation.name : selectedLocation?.name || "New York, NY";
-    try {
-      const res = await fetch("/api/maps/scrape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location: chosenLoc,
-          query: queryInput,
-          lat: selectedLocation?.lat,
-          lng: selectedLocation?.lng,
-        }),
-      });
+    const loc = confirmedLocation || selectedLocation;
 
-      if (res.ok) {
-        const data = await res.json();
-        // Add to app store
-        addMapsDiscoveryBatch(chosenLoc, queryInput);
-      } else {
-        addMapsDiscoveryBatch(chosenLoc, queryInput);
-      }
-    } catch {
-      addMapsDiscoveryBatch(chosenLoc, queryInput);
-    } finally {
-      setIsScraping(false);
+    const result = await addMapsDiscoveryBatch(chosenLoc, queryInput, loc?.lat, loc?.lng);
+
+    setIsScraping(false);
+    if (result.ok) {
       setScrapeSuccess(true);
-      setTimeout(() => {
-        setCurrentView("maps_leads");
-      }, 1000);
+      setTimeout(() => setCurrentView("maps_leads"), 1000);
+    } else {
+      setScrapeError(result.message);
     }
   };
 
@@ -327,8 +312,11 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
               className="w-full py-2.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 shadow-sm flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
             >
               <Sparkles className={`w-3.5 h-3.5 ${isScraping ? "animate-spin" : ""}`} />
-              <span>{isScraping ? "Scraping Places & Geocoding..." : "Start Background Discovery"}</span>
+              <span>{isScraping ? "Searching OpenStreetMap..." : "Start Background Discovery"}</span>
             </button>
+            {scrapeError && (
+              <p className="text-[11px] text-rose-600 font-medium">{scrapeError}</p>
+            )}
           </div>
         </div>
 

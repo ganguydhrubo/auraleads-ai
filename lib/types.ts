@@ -66,6 +66,8 @@ export interface FilterCriteria {
   websiteRequirement: "any" | "with_link" | "without_link";
 }
 
+export type Channel = "instagram" | "email" | "whatsapp" | "x" | "linkedin";
+
 export interface InstagramLead {
   id: string;
   username: string;
@@ -86,6 +88,55 @@ export interface InstagramLead {
   emailSent: boolean;
   replied: boolean;
   opened?: boolean;
+}
+
+export interface LinkedInLead {
+  id: string;
+  profileUrl: string;
+  name: string;
+  headline: string;
+  location: string;
+  company: string;
+  title: string;
+  connectionDegree: "1st" | "2nd" | "3rd" | "out_of_network";
+  source: "search" | "sales_navigator";
+  sourceRef: string;
+  decision: "matched" | "blocked" | "pending";
+  foundAt: string;
+  generatedMessage: string;
+  connectionSent: boolean;
+  connectionAccepted: boolean;
+  messageSent: boolean;
+  replied: boolean;
+}
+
+export interface WhatsAppLead {
+  id: string;
+  phone: string;
+  name: string;
+  source: "maps" | "manual" | "csv";
+  decision: "matched" | "blocked" | "pending";
+  foundAt: string;
+  generatedMessage: string;
+  messageSent: boolean;
+  delivered: boolean;
+  read: boolean;
+  replied: boolean;
+}
+
+export interface XLead {
+  id: string;
+  handle: string;
+  name: string;
+  bio: string;
+  followers: number;
+  source: "search" | "competitor";
+  sourceRef: string;
+  decision: "matched" | "blocked" | "pending";
+  foundAt: string;
+  generatedDm: string;
+  dmSent: boolean;
+  replied: boolean;
 }
 
 export interface MapsLead {
@@ -111,7 +162,7 @@ export interface MapsLead {
 
 export interface Conversation {
   id: string;
-  channel: "instagram" | "email";
+  channel: Channel;
   contactName: string;
   contactHandle: string;
   contactAvatar: string;
@@ -130,7 +181,7 @@ export interface Conversation {
 export interface Campaign {
   id: string;
   name: string;
-  channel: "instagram" | "maps";
+  channel: "instagram" | "maps" | "whatsapp" | "x" | "linkedin";
   mode: "automated" | "manual" | "advanced";
   status: "draft" | "running" | "paused" | "completed";
   recipientsCount: number;
@@ -163,6 +214,13 @@ export interface PlatformIntegrations {
     token?: string;
     webhookConfigured?: boolean;
     verifyToken?: string;
+    igUserId?: string;
+    // Separate from the official Graph API connection above: a saved browser
+    // session used by the automation worker for cold discovery/outreach,
+    // since the Graph API doesn't support either.
+    sessionConnected?: boolean;
+    sessionLabel?: string;
+    sessionSavedAt?: string;
   };
   gmail: {
     accounts: {
@@ -172,9 +230,33 @@ export interface PlatformIntegrations {
       dailySent: number;
     }[];
   };
+  whatsapp: {
+    connected: boolean;
+    phoneNumberId?: string;
+    businessAccountId?: string;
+    displayPhone?: string;
+    webhookConfigured?: boolean;
+    verifyToken?: string;
+  };
+  x: {
+    connected: boolean;
+    handle?: string;
+    appKey?: string;
+    appSecret?: string;
+    accessToken?: string;
+    accessSecret?: string;
+  };
+  linkedin: {
+    connected: boolean;
+    accountLabel?: string;
+    sessionSavedAt?: string;
+    dailyConnectionLimit: number;
+    dailyMessageLimit: number;
+  };
 }
 
 export interface AppState {
+  workspaceId: string;
   user: WorkspaceUser;
   onboarding: OnboardingStep[];
   setupDismissed: boolean;
@@ -184,6 +266,9 @@ export interface AppState {
   filters: FilterCriteria;
   instagramLeads: InstagramLead[];
   mapsLeads: MapsLead[];
+  linkedinLeads: LinkedInLead[];
+  whatsappLeads: WhatsAppLead[];
+  xLeads: XLead[];
   conversations: Conversation[];
   campaigns: Campaign[];
   aiReplyRules: AIReplyRules;

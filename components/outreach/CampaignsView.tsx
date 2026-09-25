@@ -4,9 +4,6 @@ import React, { useState } from "react";
 import {
   Layers,
   Plus,
-  Send,
-  Upload,
-  Download,
   AlertTriangle,
   Clock,
   Sparkles,
@@ -27,28 +24,27 @@ interface CampaignsViewProps {
 }
 
 export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
-  const { state, createCampaign } = useApp();
+  const { state, createCampaign, toggleCampaignStatus, queueManualInstagramDms } = useApp();
   const [platformTab, setPlatformTab] = useState<"instagram" | "maps">("instagram");
   const [subTab, setSubTab] = useState<"automated" | "manual" | "advanced">("automated");
   const [showNewModal, setShowNewModal] = useState(false);
   const [campName, setCampName] = useState("");
 
-  // Manual grid state
-  const [manualRows, setManualRows] = useState([
-    { id: "1", username: "alex.marketing", message: "Hey Alex! Loved your recent case study." },
-    { id: "2", username: "sarah_growth", message: "Hi Sarah! Saw your podcast on DTC scaling." },
-    { id: "3", username: "marcus_b2b", message: "Hey Marcus! Quick question about your outbound stack." },
+  // Manual grid state — starts empty, no sample rows
+  const [manualRows, setManualRows] = useState<{ id: string; username: string; message: string }[]>([
+    { id: "1", username: "", message: "" },
   ]);
+  const [queueStatus, setQueueStatus] = useState("");
+  const [isQueuing, setIsQueuing] = useState(false);
 
   const campaigns = state.campaigns.filter((c) => c.channel === platformTab);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!campName.trim()) return;
-    createCampaign(campName, platformTab, subTab);
+    await createCampaign(campName, platformTab, subTab);
     setCampName("");
     setShowNewModal(false);
-    alert(`Campaign "${campName}" created and queued!`);
   };
 
   const addManualRow = () => {
@@ -57,6 +53,13 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
 
   const removeManualRow = (id: string) => {
     setManualRows(manualRows.filter((r) => r.id !== id));
+  };
+
+  const handleQueueManual = async () => {
+    setIsQueuing(true);
+    const result = await queueManualInstagramDms(manualRows);
+    setIsQueuing(false);
+    setQueueStatus(result.message);
   };
 
   return (
@@ -159,12 +162,13 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
                 </div>
 
                 <div className="flex items-center justify-between pt-1 text-xs">
-                  <span className="text-muted-foreground text-[11px]">Throttling: 25 per batch</span>
+                  <span className="text-muted-foreground text-[11px] capitalize">{camp.mode}</span>
                   <button
-                    onClick={() => alert(`Campaign "${camp.name}" toggled.`)}
+                    onClick={() => toggleCampaignStatus(camp.id)}
                     className="p-1 rounded text-muted-foreground hover:text-foreground"
+                    title={camp.status === "running" ? "Pause campaign" : "Resume campaign"}
                   >
-                    <Pause className="w-3.5 h-3.5" />
+                    {camp.status === "running" ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
@@ -180,22 +184,8 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
             <div>
               <h3 className="text-sm font-bold text-foreground">Send Instagram DMs to a List of Handles</h3>
               <p className="text-xs text-muted-foreground">
-                Paste or import recipient handles directly. Batches are throttled with custom cooldowns.
+                Each row becomes a real lead and a real queued job on your connected Instagram browser-automation worker.
               </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => alert("Downloading XLSX template...")}
-                className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded border border-border hover:bg-muted"
-              >
-                <Download className="w-3 h-3" /> Template
-              </button>
-              <button
-                onClick={() => alert("Import XLSX: select file...")}
-                className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded border border-border hover:bg-muted"
-              >
-                <Upload className="w-3 h-3" /> Import .xlsx
-              </button>
             </div>
           </div>
 
@@ -244,70 +234,42 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="text-[11px] text-muted-foreground">
-                Batch size: <strong>25</strong> · Cooldown: <strong>5 min</strong>
-              </div>
+              {queueStatus && <span className="text-[11px] text-muted-foreground">{queueStatus}</span>}
               <button
-                onClick={() => alert(`Queued ${manualRows.filter((r) => r.username).length} manual DMs!`)}
-                className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 shadow-sm"
+                onClick={handleQueueManual}
+                disabled={isQueuing}
+                className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 shadow-sm disabled:opacity-50"
               >
-                Queue {manualRows.filter((r) => r.username).length} DMs
+                {isQueuing ? "Queuing..." : `Queue ${manualRows.filter((r) => r.username).length} DMs`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* SubTab 3: Advanced Auto-Send */}
+      {/* SubTab 3: Advanced Auto-Send — real automation worker, not a browser extension */}
       {subTab === "advanced" && (
         <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
-          <div className="p-4 bg-muted/40 border border-border rounded-xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                <Laptop className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-foreground">Celestia Leads Browser Extension Integration</h4>
-                <p className="text-xs text-muted-foreground">
-                  Bulk DM sending runs directly through your residential browser session so Instagram can't rate-limit your server.
-                </p>
-              </div>
+          <div className="p-4 bg-muted/40 border border-border rounded-xl flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Laptop className="w-5 h-5" />
             </div>
-            <span className="text-xs bg-emerald-500/10 text-emerald-600 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/20">
-              Extension Active (v2.1)
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-            <div className="p-4 rounded-lg border border-border bg-card space-y-1">
-              <span className="text-muted-foreground block">Session Safety Limit</span>
-              <span className="text-base font-bold text-foreground font-mono">Max 200 DMs/session</span>
-            </div>
-            <div className="p-4 rounded-lg border border-border bg-card space-y-1">
-              <span className="text-muted-foreground block">Batch Throttle</span>
-              <span className="text-base font-bold text-foreground font-mono">25 leads per batch</span>
-            </div>
-            <div className="p-4 rounded-lg border border-border bg-card space-y-1">
-              <span className="text-muted-foreground block">Human Typing Simulation</span>
-              <span className="text-base font-bold text-emerald-600 font-mono">Active (Random Delays)</span>
+            <div>
+              <h4 className="text-sm font-bold text-foreground">Browser Automation Worker</h4>
+              <p className="text-xs text-muted-foreground">
+                Bulk sends run through the shared LinkedIn/Instagram automation worker (<code>/workers/social-worker</code>) using
+                your own logged-in session — see Settings → Browser Automation to connect it, and Admin → Automation Job Queue to
+                watch jobs run.
+              </p>
             </div>
           </div>
 
           <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-center gap-3 text-xs text-amber-800 dark:text-amber-300">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             <p>
-              Keep batches under 25 messages with at least 5-minute cooldowns to avoid Instagram temporary action blocks.
+              This uses your account outside Instagram's supported integration path and can trigger rate limits or restrictions.
+              The worker enforces daily connection/message caps from your workspace settings — it will not blast unlimited volume.
             </p>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              onClick={() => alert("Bulk DM dispatch initiated via browser extension worker!")}
-              className="px-5 py-2.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 shadow-sm flex items-center gap-2"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Start Extension Dispatch</span>
-            </button>
           </div>
         </div>
       )}
