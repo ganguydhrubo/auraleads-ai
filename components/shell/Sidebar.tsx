@@ -88,6 +88,18 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
           >
             <Music2 className="w-4 h-4" />
           </button>
+          <button
+            onClick={async () => {
+              const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
+              const supabase = createSupabaseBrowserClient();
+              await supabase.auth.signOut();
+              window.location.href = "/login";
+            }}
+            className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-muted"
+            title="Logout"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </aside>
     );
@@ -444,10 +456,11 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
               await supabase.auth.signOut();
               window.location.href = "/login";
             }}
-            className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-muted transition-colors"
+            className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground hover:text-destructive px-2 py-1 rounded hover:bg-muted transition-colors shrink-0"
             title="Logout"
           >
             <LogOut className="w-3.5 h-3.5" />
+            <span>Logout</span>
           </button>
         </div>
       </div>
