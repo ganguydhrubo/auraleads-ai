@@ -17,6 +17,26 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState<"login" | "forgot">("login");
+  const [forgotSent, setForgotSent] = useState(false);
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const supabase = createSupabaseBrowserClient();
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message);
+      return;
+    }
+    setForgotSent(true);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,51 +104,112 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form className="space-y-4 text-xs" onSubmit={handleLogin}>
-            <div className="space-y-1.5">
-              <label className="font-semibold text-foreground">Work Email Address</label>
-              <div className="relative">
-                <Mail className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="founder@company.com"
-                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
+          {mode === "forgot" ? (
+            forgotSent ? (
+              <div className="text-center space-y-3 py-4">
+                <p className="text-sm text-foreground font-semibold">Check your inbox</p>
+                <p className="text-xs text-muted-foreground">
+                  If an account exists for <strong>{email}</strong>, a password reset link is on its way.
+                </p>
+                <button
+                  onClick={() => {
+                    setMode("login");
+                    setForgotSent(false);
+                  }}
+                  className="text-xs text-primary font-semibold hover:underline"
+                >
+                  Back to sign in
+                </button>
               </div>
-            </div>
+            ) : (
+              <form className="space-y-4 text-xs" onSubmit={handleForgotPassword}>
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-foreground">Work Email Address</label>
+                  <div className="relative">
+                    <Mail className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="founder@company.com"
+                      className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    />
+                  </div>
+                </div>
 
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center">
-                <label className="font-semibold text-foreground">Password</label>
-                <a href="#" className="text-[11px] text-primary hover:underline">
-                  Forgot?
-                </a>
-              </div>
-              <div className="relative">
-                <Lock className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
-                />
-              </div>
-            </div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  <Sparkles className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                  <span>{loading ? "Sending reset link..." : "Send Password Reset Email"}</span>
+                </button>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <Sparkles className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-              <span>{loading ? "Authenticating Workspace..." : "Sign In to Pipeline"}</span>
-            </button>
-          </form>
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
+                >
+                  Back to sign in
+                </button>
+              </form>
+            )
+          ) : (
+            <form className="space-y-4 text-xs" onSubmit={handleLogin}>
+              <div className="space-y-1.5">
+                <label className="font-semibold text-foreground">Work Email Address</label>
+                <div className="relative">
+                  <Mail className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="founder@company.com"
+                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="font-semibold text-foreground">Password</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("forgot");
+                      setError("");
+                    }}
+                    className="text-[11px] text-primary hover:underline"
+                  >
+                    Forgot?
+                  </button>
+                </div>
+                <div className="relative">
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-2.5" />
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <Sparkles className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <span>{loading ? "Authenticating Workspace..." : "Sign In to Pipeline"}</span>
+              </button>
+            </form>
+          )}
 
           <div className="pt-2 border-t border-border/80 flex items-center text-[11px] text-muted-foreground">
             <span className="flex items-center gap-1">
