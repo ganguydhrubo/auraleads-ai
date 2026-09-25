@@ -1,15 +1,24 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Sparkles, Lock, CheckCircle2 } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export const dynamic = "force-dynamic";
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordForm />
+    </Suspense>
+  );
+}
+
+function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,10 +27,22 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Clicking the emailed reset link redirects here with a recovery token in
-    // the URL hash; the browser client picks it up and establishes a
-    // temporary session automatically (detectSessionInUrl is on by default).
     const supabase = createSupabaseBrowserClient();
+
+    const code = searchParams.get("code");
+    if (code) {
+      // This project uses the PKCE flow: the emailed link redirects here
+      // with ?code=... instead of a #access_token= hash, and the code has
+      // to be exchanged explicitly for a session.
+      supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
+        if (exchangeError) setError(exchangeError.message);
+        else setReady(true);
+      });
+      return;
+    }
+
+    // Fallback for the older implicit flow (#access_token= hash), which
+    // detectSessionInUrl picks up automatically.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
@@ -33,7 +54,7 @@ export default function ResetPasswordPage() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
