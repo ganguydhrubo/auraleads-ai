@@ -150,6 +150,7 @@ export function ProductTour() {
           <button
             onClick={() => setTourOpen(false)}
             className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+            aria-label="Close tour"
           >
             <X className="w-4 h-4" />
           </button>

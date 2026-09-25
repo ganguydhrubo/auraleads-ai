@@ -101,6 +101,7 @@ export function SetupWidget({ setCurrentView }: SetupWidgetProps) {
             onClick={() => setCollapsed(!collapsed)}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title={collapsed ? "Expand" : "Collapse"}
+            aria-label={collapsed ? "Expand" : "Collapse"}
           >
             {collapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
           </button>
@@ -108,6 +109,7 @@ export function SetupWidget({ setCurrentView }: SetupWidgetProps) {
             onClick={dismissSetupWidget}
             className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Dismiss checklist"
+            aria-label="Dismiss checklist"
           >
             <X className="w-4 h-4" />
           </button>

@@ -153,7 +153,8 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Active Hashtag Research Panel</h3>
             <p className="text-xs text-muted-foreground">
-              Real-time validation score, post volume, and suitability ratings for your weekly cycle.
+              AI-estimated validation score and post volume for your weekly cycle — not live Instagram data (Instagram's
+              API doesn't expose real hashtag volume to third parties).
             </p>
           </div>
           <span className="text-xs font-medium text-muted-foreground">
@@ -208,6 +209,7 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
                   onClick={() => deleteHashtag(h.id)}
                   className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   title="Remove hashtag"
+                  aria-label={`Remove ${h.tag}`}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>

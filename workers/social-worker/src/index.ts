@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 import { createClient } from "@supabase/supabase-js";
 import { decryptSecret } from "./crypto";
 import { applyLinkedInSession, searchLinkedInPeople, sendLinkedInConnectionRequest, sendLinkedInMessage } from "./linkedin";
-import { applyInstagramSession, searchInstagramHashtag, sendInstagramDirectMessage } from "./instagram";
+import { applyInstagramSession, searchInstagramHashtag, searchInstagramFollowers, sendInstagramDirectMessage } from "./instagram";
 import { sleep } from "./pacing";
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
@@ -124,6 +124,21 @@ async function runJob(job: Job) {
             source_ref: query,
             decision: "pending",
             metadata: { profileUrl: p.profileUrl, connectionDegree: p.connectionDegree },
+          });
+        }
+      } else if (job.payload.competitorUsername) {
+        const competitorUsername: string = job.payload.competitorUsername;
+        const followers = await searchInstagramFollowers(page, competitorUsername);
+        for (const p of followers) {
+          found.push({
+            workspace_id: job.workspace_id,
+            platform: "instagram",
+            username: p.username,
+            name: p.username,
+            source: "competitor",
+            source_ref: "@" + competitorUsername.replace(/^@/, ""),
+            decision: "pending",
+            metadata: {},
           });
         }
       } else {

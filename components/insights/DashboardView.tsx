@@ -101,7 +101,7 @@ export function DashboardView() {
               {totalReplied} / {totalSent} replies detected across outreach channels ({pct(totalReplied, totalSent)} overall reply rate)
             </p>
           </div>
-          <button onClick={() => refresh()} className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground">
+          <button onClick={() => refresh()} className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground" aria-label="Refresh">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -19,8 +19,6 @@ import {
   ChevronDown,
   ChevronRight,
   LogOut,
-  Music2,
-  Volume2,
   Sparkles,
   Layers,
 } from "lucide-react";
@@ -33,7 +31,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps) {
-  const { state, audioPlaying, setAudioPlaying } = useApp();
+  const { state } = useApp();
   const [discoverOpen, setDiscoverOpen] = useState(true);
   const [outreachOpen, setOutreachOpen] = useState(true);
 
@@ -53,6 +51,7 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
               onClick={() => setCurrentView("hashtags_leads")}
               className={`p-2.5 rounded-lg flex justify-center text-sm ${currentView.includes("hashtags") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
               title="Hashtag Leads"
+              aria-label="Hashtag Leads"
             >
               <Hash className="w-4 h-4" />
             </button>
@@ -60,6 +59,7 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
               onClick={() => setCurrentView("maps_discover")}
               className={`p-2.5 rounded-lg flex justify-center text-sm ${currentView.includes("maps") ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
               title="Maps Discovery"
+              aria-label="Maps Discovery"
             >
               <MapPin className="w-4 h-4" />
             </button>
@@ -67,6 +67,7 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
               onClick={() => setCurrentView("inbox")}
               className={`p-2.5 rounded-lg flex justify-center text-sm ${currentView === "inbox" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
               title="Inbox"
+              aria-label="Inbox"
             >
               <Mail className="w-4 h-4" />
             </button>
@@ -74,6 +75,7 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
               onClick={() => setCurrentView("dashboard")}
               className={`p-2.5 rounded-lg flex justify-center text-sm ${currentView === "dashboard" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"}`}
               title="Dashboard"
+              aria-label="Dashboard"
             >
               <BarChart3 className="w-4 h-4" />
             </button>
@@ -81,13 +83,6 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <button
-            onClick={() => setAudioPlaying(!audioPlaying)}
-            className={`p-2 rounded-full ${audioPlaying ? "text-primary animate-pulse" : "text-muted-foreground hover:text-foreground"}`}
-            title="Toggle background ambient"
-          >
-            <Music2 className="w-4 h-4" />
-          </button>
           <button
             onClick={async () => {
               const { createSupabaseBrowserClient } = await import("@/lib/supabase/client");
@@ -97,6 +92,7 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
             }}
             className="p-2 rounded-full text-muted-foreground hover:text-destructive hover:bg-muted"
             title="Logout"
+            aria-label="Logout"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -420,33 +416,19 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
 
       {/* Footer */}
       <div className="p-3 border-t border-border/80 bg-muted/20 space-y-2">
-        {/* Mini Audio Player */}
-        <div className="flex items-center justify-between px-2 py-1.5 rounded-md bg-card border border-border text-xs">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <Music2 className={`w-3.5 h-3.5 ${audioPlaying ? "text-primary animate-spin" : "text-muted-foreground"}`} />
-            <div className="truncate">
-              <span className="text-[10px] text-muted-foreground block leading-none">Now Playing</span>
-              <span className="text-[11px] font-medium text-foreground truncate">Deep Focus · Ambient Lo-Fi</span>
-            </div>
-          </div>
-          <button
-            onClick={() => setAudioPlaying(!audioPlaying)}
-            className="text-muted-foreground hover:text-foreground p-1"
-            title={audioPlaying ? "Pause music" : "Play music"}
-          >
-            {audioPlaying ? <Volume2 className="w-3.5 h-3.5 text-primary" /> : <Music2 className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-
         {/* User Card */}
         <div className="flex items-center justify-between px-2 pt-1">
           <div className="overflow-hidden">
             <div className="text-xs font-semibold text-foreground truncate">{state.user.email}</div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[10px] font-medium px-1.5 py-0.2 bg-muted text-muted-foreground rounded">
-                {state.user.plan} Trial
+                {state.user.plan}
               </span>
-              <span className="text-[10px] text-muted-foreground">7 days left</span>
+              {state.user.plan === "Trial" && (
+                <span className="text-[10px] text-muted-foreground">
+                  {Math.max(0, Math.ceil((new Date(state.user.trialEndsAt).getTime() - Date.now()) / 86400000))} days left
+                </span>
+              )}
             </div>
           </div>
           <button

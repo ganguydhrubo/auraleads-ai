@@ -28,6 +28,7 @@ interface AppContextType {
   updateTemplates: (templates: MessageTemplates) => Promise<void>;
   createCampaign: (name: string, channel: "instagram" | "maps" | "whatsapp" | "x" | "linkedin", mode: "automated" | "manual" | "advanced") => Promise<void>;
   toggleCampaignStatus: (id: string) => Promise<void>;
+  queueCompetitorScrape: () => Promise<{ ok: boolean; message: string }>;
   queueManualInstagramDms: (rows: { username: string; message: string }[]) => Promise<{ ok: boolean; message: string }>;
   updateSettings: (settings: Partial<AppState["settings"]>) => Promise<void>;
   updateIntegrations: (integrations: Partial<AppState["integrations"]>) => Promise<void>;
@@ -40,8 +41,8 @@ interface AppContextType {
   setActiveTourStep: (step: number) => void;
   chatOpen: boolean;
   setChatOpen: (open: boolean) => void;
-  audioPlaying: boolean;
-  setAudioPlaying: (playing: boolean) => void;
+  toast: { message: string; tone: "info" | "error" } | null;
+  showToast: (message: string, tone?: "info" | "error") => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -52,7 +53,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [tourOpen, setTourOpen] = useState(false);
   const [activeTourStep, setActiveTourStep] = useState(1);
   const [chatOpen, setChatOpen] = useState(false);
-  const [audioPlaying, setAudioPlaying] = useState(false);
+  const [toast, setToast] = useState<{ message: string; tone: "info" | "error" } | null>(null);
+  const toastTimer = React.useRef<ReturnType<typeof setTimeout>>();
+
+  const showToast = useCallback((message: string, tone: "info" | "error" = "info") => {
+    setToast({ message, tone });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 4000);
+  }, []);
 
   const supabase = createSupabaseBrowserClient();
 
@@ -134,6 +142,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const addHashtag = async (tag: string) => {
     const clean = tag.startsWith("#") ? tag : "#" + tag;
+    if (state.hashtags.some((h) => h.tag.toLowerCase() === clean.toLowerCase())) {
+      showToast(`${clean} is already in your list.`, "error");
+      return;
+    }
     const { data } = await supabase
       .from("hashtags")
       .insert({ workspace_id: wsId(), tag: clean, source: "manual", validation_score: 0, posts_count: "—", relevance_score: 0, active: true })
@@ -387,6 +399,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await supabase.from("campaigns").update({ status: next }).eq("id", id);
   };
 
+  // Queues a real follower-scrape job per configured competitor — Instagram's
+  // API has no endpoint for listing another account's followers at all, so
+  // this runs on the same browser-automation worker as hashtag discovery.
+  const queueCompetitorScrape = async () => {
+    if (!state.integrations.instagram.sessionConnected) {
+      return { ok: false, message: "Connect your Instagram browser session in Settings first." };
+    }
+    if (state.competitors.length === 0) {
+      return { ok: false, message: "Add at least one competitor first." };
+    }
+
+    let queued = 0;
+    for (const comp of state.competitors) {
+      const res = await fetch("/api/automation/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform: "instagram", action: "search", payload: { competitorUsername: comp.username } }),
+      });
+      if (res.ok) queued++;
+    }
+
+    return { ok: queued > 0, message: queued > 0 ? `Queued ${queued} follower-scrape job(s).` : "Could not queue any jobs." };
+  };
+
   // Creates real lead rows (not fabricated sample data) from a hand-typed
   // list, then queues each one on the same automation worker used for
   // regular Instagram DMs — requires a connected Instagram browser session.
@@ -489,6 +525,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateTemplates,
         createCampaign,
         toggleCampaignStatus,
+        queueCompetitorScrape,
         queueManualInstagramDms,
         updateSettings,
         updateIntegrations,
@@ -501,8 +538,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setActiveTourStep,
         chatOpen,
         setChatOpen,
-        audioPlaying,
-        setAudioPlaying,
+        toast,
+        showToast,
       }}
     >
       {children}

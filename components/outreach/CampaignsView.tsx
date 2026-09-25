@@ -16,6 +16,7 @@ import {
   Instagram,
   MapPin,
   Trash2,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 
@@ -167,6 +168,7 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
                     onClick={() => toggleCampaignStatus(camp.id)}
                     className="p-1 rounded text-muted-foreground hover:text-foreground"
                     title={camp.status === "running" ? "Pause campaign" : "Resume campaign"}
+                    aria-label={camp.status === "running" ? "Pause campaign" : "Resume campaign"}
                   >
                     {camp.status === "running" ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                   </button>
@@ -218,6 +220,7 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
                 <button
                   onClick={() => removeManualRow(row.id)}
                   className="p-2 text-muted-foreground hover:text-destructive"
+                  aria-label="Remove row"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -280,8 +283,8 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
           <form onSubmit={handleCreate} className="w-full max-w-md bg-card border border-border rounded-xl shadow-2xl p-6 space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-border">
               <h3 className="text-sm font-bold text-foreground">Create New Campaign</h3>
-              <button type="button" onClick={() => setShowNewModal(false)} className="p-1 rounded text-muted-foreground hover:text-foreground">
-                ?
+              <button type="button" onClick={() => setShowNewModal(false)} className="p-1 rounded text-muted-foreground hover:text-foreground" aria-label="Close">
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-2 text-xs">

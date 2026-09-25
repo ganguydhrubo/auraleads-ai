@@ -46,11 +46,11 @@ export function LandingPage() {
   const faqs = [
     {
       q: "How does AuraLeads source prospects from Instagram without getting banned?",
-      a: "AuraLeads utilizes official Meta Graph APIs for messaging while dispatching bulk actions through safe, randomized batch throttling (max 200 DMs/hr with 5-minute cooldowns). Additionally, power users can enable our residential browser extension, ensuring that all connection traffic originates from your local browser session rather than an easily flagged data-center proxy.",
+      a: "Instagram's official API doesn't support cold outreach or hashtag-based discovery for third parties — no legitimate tool can do that through Meta's API. AuraLeads uses the official Graph API for what it's actually built for (replying to inbound DMs and AI auto-replies within Meta's messaging window), and a separate browser-automation worker — using your own logged-in Instagram session, with daily volume caps — for cold discovery and first-touch outreach. That second part runs outside Instagram's Terms of Service, same as similar tools on the market, and carries a real risk of account restrictions if overused.",
     },
     {
-      q: "Is Google Maps business data accurate and enriched with direct emails?",
-      a: "Yes. Our Maps discovery engine queries live geocoded OpenStreetMap and Google Places nodes. Once a local business listing is captured, our executive enrichment engine uncovers associated decision-makers (Founders, Managing Partners, CEOs) and verifies their business emails.",
+      q: "Is Google Maps business data real?",
+      a: "Yes — it's sourced live from OpenStreetMap, with no fabricated results. Contact enrichment checks the business's own public website for a listed email/phone; it's only as complete as what that business has published, so some listings will have gaps rather than invented data.",
     },
     {
       q: "Can I connect multiple Gmail inboxes for cold outreach?",
@@ -72,12 +72,12 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
-      {/* Top Scarcity Bar */}
+      {/* Top Banner */}
       <div className="bg-[#3B50F5] text-white px-4 py-2 text-xs font-semibold text-center flex items-center justify-center gap-2">
         <Sparkles className="w-3.5 h-3.5" />
-        <span>Early Access Batch: Only 3 server spots remaining this week. 7-Day Free Trial Active.</span>
-        <Link href="/app" className="underline hover:text-white/80 ml-2 font-bold">
-          Claim Spot →
+        <span>7-day free trial · No credit card required</span>
+        <Link href="/signup" className="underline hover:text-white/80 ml-2 font-bold">
+          Get Started →
         </Link>
       </div>
 
@@ -137,7 +137,7 @@ export function LandingPage() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
           <Link
-            href="/app"
+            href="/signup"
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 flex items-center justify-center gap-2"
           >
             <span>Start 7-Day Free Trial</span>
@@ -409,7 +409,7 @@ export function LandingPage() {
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
             <h4 className="text-sm font-bold text-foreground">Local Commercial Services</h4>
             <p className="text-muted-foreground leading-relaxed">
-              Win high-ticket local contracts (roofing, HVAC, legal, dental) by sourcing commercial listings with verified executive phone numbers and emails.
+              Win high-ticket local contracts (roofing, HVAC, legal, dental) by sourcing real commercial listings from OpenStreetMap, with contact details enriched from each business's own public website where available.
             </p>
           </div>
         </div>
@@ -518,7 +518,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-extrabold text-foreground font-mono">
-                  {annualBilling ? "$23" : "$29"}
+                  {annualBilling ? "$16" : "$20"}
                 </span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
@@ -530,7 +530,7 @@ export function LandingPage() {
               </ul>
             </div>
             <Link
-              href="/app"
+              href="/signup"
               className="w-full py-2.5 rounded-xl border border-border bg-secondary text-secondary-foreground text-xs font-bold hover:bg-muted text-center block"
             >
               Start Free Trial
@@ -549,7 +549,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-extrabold text-foreground font-mono">
-                  {annualBilling ? "$47" : "$59"}
+                  {annualBilling ? "$40" : "$50"}
                 </span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
@@ -562,7 +562,7 @@ export function LandingPage() {
               </ul>
             </div>
             <Link
-              href="/app"
+              href="/signup"
               className="w-full py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 text-center block shadow-sm"
             >
               Start Free Trial
@@ -578,7 +578,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-extrabold text-foreground font-mono">
-                  {annualBilling ? "$79" : "$99"}
+                  {annualBilling ? "$80" : "$100"}
                 </span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
@@ -591,7 +591,7 @@ export function LandingPage() {
               </ul>
             </div>
             <Link
-              href="/app"
+              href="/signup"
               className="w-full py-2.5 rounded-xl border border-border bg-secondary text-secondary-foreground text-xs font-bold hover:bg-muted text-center block"
             >
               Start Free Trial
@@ -637,11 +637,11 @@ export function LandingPage() {
         <div className="p-10 rounded-3xl bg-gradient-to-br from-primary via-indigo-600 to-primary text-white shadow-2xl space-y-4">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight">Ready to Fill Your Pipeline on Autopilot?</h2>
           <p className="text-xs sm:text-sm text-white/80 max-w-xl mx-auto">
-            Join hundreds of agencies and growth teams closing deals with AuraLeads AI. Start your free 7-day trial now.
+            Start your free 7-day trial — no credit card required.
           </p>
           <div className="pt-2">
             <Link
-              href="/app"
+              href="/signup"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-white text-primary font-bold text-sm hover:bg-white/95 shadow-md transition-all"
             >
               <span>Get Started Free</span>
@@ -673,7 +673,7 @@ export function LandingPage() {
             <h4 className="font-bold text-foreground mb-2">Integrations</h4>
             <ul className="space-y-1.5 text-[11px]">
               <li><Link href="/app" className="hover:text-foreground">Meta Graph API</Link></li>
-              <li><Link href="/app" className="hover:text-foreground">Google Places</Link></li>
+              <li><Link href="/app" className="hover:text-foreground">OpenStreetMap</Link></li>
               <li><Link href="/app" className="hover:text-foreground">Gmail Multi-Inbox</Link></li>
               <li><Link href="/app" className="hover:text-foreground">Groq AI Inference</Link></li>
             </ul>

@@ -9,8 +9,6 @@ import {
   Sun,
   Clock,
   CheckCircle2,
-  AlertCircle,
-  ExternalLink,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 
@@ -42,6 +40,7 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
 
   const viewInfo = titlesMap[currentView] || { title: "Celestia Leads", subtitle: "Lead Generation Platform" };
+  const unreadConversations = state.conversations.filter((c) => c.unread);
 
   return (
     <header className="h-16 border-b border-border bg-card/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
@@ -50,6 +49,7 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
           onClick={() => setCollapsed(!collapsed)}
           className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           title="Toggle Sidebar"
+          aria-label="Toggle Sidebar"
         >
           <Menu className="w-4 h-4" />
         </button>
@@ -66,7 +66,6 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
           <span className="font-medium text-foreground">
             {state.user.usage.leadsToday}/{state.user.limits.leadsDay} Leads Today
           </span>
-          <span className="text-[11px] text-muted-foreground font-mono">· Resets in 18h 50m</span>
         </div>
 
         {/* Website Guide / Product Tour Button */}
@@ -91,6 +90,7 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
           }}
           className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           title="Toggle theme"
+          aria-label="Toggle theme"
         >
           {state.settings.darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4" />}
         </button>
@@ -101,34 +101,34 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
             onClick={() => setShowNotifications(!showNotifications)}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors relative"
             title="Notifications"
+            aria-label="Notifications"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
+            {unreadConversations.length > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-primary" />
+            )}
           </button>
 
           {showNotifications && (
             <div className="absolute right-0 mt-2 w-80 bg-card rounded-lg border border-border shadow-xl p-3 z-50 text-xs space-y-2">
               <div className="flex items-center justify-between pb-2 border-b border-border">
                 <span className="font-semibold text-foreground">Notifications</span>
-                <span className="text-[10px] text-primary font-medium cursor-pointer hover:underline">Mark all read</span>
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                <div className="p-2 rounded bg-muted/40 hover:bg-muted flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-foreground">New Instagram reply</p>
-                    <p className="text-muted-foreground text-[11px]">@alex.growthlab replied to your initial DM.</p>
-                    <span className="text-[9px] text-muted-foreground/80 mt-1 block">12m ago</span>
-                  </div>
-                </div>
-                <div className="p-2 rounded bg-muted/40 hover:bg-muted flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-medium text-foreground">Daily Leads Ready</p>
-                    <p className="text-muted-foreground text-[11px]">Daily scraping cycle completed with 10 qualified candidates.</p>
-                    <span className="text-[9px] text-muted-foreground/80 mt-1 block">2h ago</span>
-                  </div>
-                </div>
+                {unreadConversations.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-4">No notifications yet.</p>
+                ) : (
+                  unreadConversations.slice(0, 8).map((c) => (
+                    <div key={c.id} className="p-2 rounded bg-muted/40 hover:bg-muted flex items-start gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-foreground">New {c.channel} message</p>
+                        <p className="text-muted-foreground text-[11px]">{c.contactName} · {c.contactHandle}</p>
+                        <span className="text-[9px] text-muted-foreground/80 mt-1 block">{new Date(c.lastActive).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

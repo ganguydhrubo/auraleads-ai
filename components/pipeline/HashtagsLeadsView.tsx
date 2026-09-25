@@ -16,6 +16,7 @@ import {
   Hash,
   ArrowRight,
   UserCheck,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 import { InstagramLead } from "@/lib/types";
@@ -25,7 +26,7 @@ interface HashtagsLeadsViewProps {
 }
 
 export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
-  const { state, startLeadGenerationCycle, updateInstagramLeadDecision, sendInstagramLeadDm } = useApp();
+  const { state, startLeadGenerationCycle, updateInstagramLeadDecision, sendInstagramLeadDm, showToast } = useApp();
   const [decisionFilter, setDecisionFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<InstagramLead | null>(null);
@@ -50,7 +51,7 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
     setIsGenerating(true);
     const result = await startLeadGenerationCycle();
     setIsGenerating(false);
-    if (!result.ok) alert(result.message);
+    showToast(result.message, result.ok ? "info" : "error");
   };
 
   const handleExport = () => {
@@ -165,18 +166,38 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
           <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
             <Hash className="w-6 h-6" />
           </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Start a hashtag scraping cycle first</h3>
-            <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
-              Leads appear here once your hashtag cycle begins scraping profiles matching your active hashtags and qualification filters.
-            </p>
-          </div>
-          <button
-            onClick={() => setCurrentView("hashtags_setup")}
-            className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm"
-          >
-            Go to Hashtags Setup
-          </button>
+          {state.integrations.instagram.sessionConnected ? (
+            <>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">No leads yet — start a discovery cycle</h3>
+                <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
+                  Leads appear here once the browser-automation worker finds profiles matching your active hashtags.
+                </p>
+              </div>
+              <button
+                onClick={() => setCurrentView("hashtags_setup")}
+                className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm"
+              >
+                Go to Hashtags Setup
+              </button>
+            </>
+          ) : (
+            <>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Connect Instagram to discover leads</h3>
+                <p className="text-xs text-muted-foreground mt-1 max-w-md mx-auto">
+                  Real hashtag discovery requires a connected Instagram browser session (Instagram's own API can't do this —
+                  see Settings for why).
+                </p>
+              </div>
+              <button
+                onClick={() => setCurrentView("settings")}
+                className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 shadow-sm"
+              >
+                Go to Settings
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
@@ -235,6 +256,7 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
                           onClick={() => setSelectedLead(lead)}
                           className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
                           title="Preview personalized messages"
+                          aria-label="Preview personalized messages"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
@@ -242,7 +264,7 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
                           <button
                             onClick={async () => {
                               const result = await sendInstagramLeadDm(lead.id);
-                              alert(result.message);
+                              showToast(result.message, result.ok ? "info" : "error");
                             }}
                             disabled={lead.dmSent}
                             className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 shadow-2xs ${
@@ -277,8 +299,9 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
               <button
                 onClick={() => setSelectedLead(null)}
                 className="p-1 rounded text-muted-foreground hover:text-foreground"
+                aria-label="Close"
               >
-                ?
+                <X className="w-4 h-4" />
               </button>
             </div>
 
@@ -350,7 +373,7 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
                   onClick={async () => {
                     const result = await sendInstagramLeadDm(selectedLead.id);
                     setSelectedLead(null);
-                    alert(result.message);
+                    showToast(result.message, result.ok ? "info" : "error");
                   }}
                   disabled={selectedLead.decision !== "matched" || selectedLead.dmSent}
                   className="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40"

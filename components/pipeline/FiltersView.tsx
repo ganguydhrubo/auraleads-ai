@@ -162,6 +162,7 @@ export function FiltersView() {
                   type="button"
                   onClick={() => handleRemoveTheme(theme)}
                   className="hover:text-blue-800"
+                  aria-label={`Remove ${theme}`}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -279,6 +280,7 @@ export function FiltersView() {
                   type="button"
                   onClick={() => handleRemoveLocation(loc)}
                   className="hover:text-destructive"
+                  aria-label={`Remove ${loc}`}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -319,7 +321,7 @@ export function FiltersView() {
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 text-xs font-medium border border-rose-500/20"
                 >
                   <span>{kw}</span>
-                  <button type="button" onClick={() => handleRemoveBlockedKeyword(kw)}>
+                  <button type="button" onClick={() => handleRemoveBlockedKeyword(kw)} aria-label={`Remove ${kw}`}>
                     <X className="w-3 h-3" />
                   </button>
                 </span>

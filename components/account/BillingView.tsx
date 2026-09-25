@@ -8,6 +8,7 @@ import {
   Sparkles,
   ShieldCheck,
   Zap,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 
@@ -255,8 +256,9 @@ export function BillingView() {
               <button
                 onClick={() => setSelectedPlanForModal(null)}
                 className="p-1 rounded text-muted-foreground hover:text-foreground"
+                aria-label="Close"
               >
-                ?
+                <X className="w-4 h-4" />
               </button>
             </div>
 

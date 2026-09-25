@@ -12,6 +12,7 @@ import {
   Eye,
   Send,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 import { InstagramLead } from "@/lib/types";
@@ -21,7 +22,7 @@ interface CompetitorLeadsViewProps {
 }
 
 export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps) {
-  const { state, updateInstagramLeadDecision, sendInstagramLeadDm } = useApp();
+  const { state, updateInstagramLeadDecision, sendInstagramLeadDm, showToast } = useApp();
   const [selectedComp, setSelectedComp] = useState<string>("all");
   const [decisionFilter, setDecisionFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,12 +45,33 @@ export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps
     return true;
   });
 
-  const handleStartFiltering = () => {
+  // Applies your real Smart Lead Filters (Filters view) against currently
+  // loaded leads — this used to be a fake spinner with a canned success
+  // message and no actual logic.
+  const handleStartFiltering = async () => {
     setIsFiltering(true);
-    setTimeout(() => {
-      setIsFiltering(false);
-      alert("AI Qualification complete! All competitor followers classified against your ICP filters.");
-    }, 1200);
+    const f = state.filters;
+    let changed = 0;
+
+    for (const lead of leads) {
+      const bio = lead.bio.toLowerCase();
+      const blockedByKeyword = f.blockedKeywords.some((k) => k && bio.includes(k.toLowerCase()));
+      const blockedByCategory = f.blockedCategories.some((c) => c && lead.category.toLowerCase() === c.toLowerCase());
+      const belowMin = f.followerRange.minEnabled && lead.followers < f.followerRange.min;
+      const aboveMax = f.followerRange.maxEnabled && lead.followers > f.followerRange.max;
+      const missingEmail = f.mustHaveEmail && !lead.email;
+
+      const shouldBlock = blockedByKeyword || blockedByCategory || belowMin || aboveMax || missingEmail;
+      const nextDecision = shouldBlock ? "blocked" : "matched";
+
+      if (nextDecision !== lead.decision) {
+        await updateInstagramLeadDecision(lead.id, nextDecision);
+        changed++;
+      }
+    }
+
+    setIsFiltering(false);
+    showToast(changed > 0 ? `Re-classified ${changed} lead(s) against your filters.` : "All leads already match your current filters.");
   };
 
   const handleExport = () => {
@@ -233,13 +255,14 @@ export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps
                           onClick={() => setSelectedLead(lead)}
                           className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
                           title="Preview personalized DM"
+                          aria-label="Preview personalized DM"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={async () => {
                             const result = await sendInstagramLeadDm(lead.id);
-                            alert(result.message);
+                            showToast(result.message, result.ok ? "info" : "error");
                           }}
                           disabled={lead.dmSent}
                           className={`px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
@@ -273,8 +296,9 @@ export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps
               <button
                 onClick={() => setSelectedLead(null)}
                 className="p-1 rounded text-muted-foreground hover:text-foreground"
+                aria-label="Close"
               >
-                ?
+                <X className="w-4 h-4" />
               </button>
             </div>
             <div className="space-y-2 text-xs">
@@ -294,7 +318,7 @@ export function CompetitorLeadsView({ setCurrentView }: CompetitorLeadsViewProps
                 onClick={async () => {
                   const result = await sendInstagramLeadDm(selectedLead.id);
                   setSelectedLead(null);
-                  alert(result.message);
+                  showToast(result.message, result.ok ? "info" : "error");
                 }}
                 disabled={selectedLead.dmSent}
                 className="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40"

@@ -44,6 +44,7 @@ export function SupportChat() {
           onClick={() => setChatOpen(true)}
           className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[#3548F3] text-white shadow-xl hover:scale-105 active:scale-95 transition-all z-40 flex items-center justify-center cursor-pointer group"
           title="Open Support Chat"
+          aria-label="Open Support Chat"
         >
           <MessageCircle className="w-6 h-6 group-hover:rotate-12 transition-transform" />
           <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" />
@@ -72,6 +73,7 @@ export function SupportChat() {
             <button
               onClick={() => setChatOpen(false)}
               className="p-1 rounded-md text-white/80 hover:text-white hover:bg-white/10"
+              aria-label="Close support chat"
             >
               <X className="w-5 h-5" />
             </button>
@@ -146,6 +148,7 @@ export function SupportChat() {
               type="submit"
               disabled={!input.trim()}
               className="p-2 rounded-lg bg-[#3548F3] text-white disabled:opacity-40 hover:bg-[#3548F3]/90 transition-colors"
+              aria-label="Send message"
             >
               <Send className="w-4 h-4" />
             </button>

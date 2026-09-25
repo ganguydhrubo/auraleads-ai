@@ -84,7 +84,7 @@ export function AdminView() {
             </p>
           </div>
         </div>
-        <button onClick={load} className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground">
+        <button onClick={load} className="p-1.5 rounded-lg border border-border text-muted-foreground hover:text-foreground" aria-label="Refresh">
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
         </button>
       </div>
@@ -167,7 +167,7 @@ export function AdminView() {
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted text-muted-foreground capitalize">{n.status}</span>
                     </td>
                     <td className="p-3 pr-4 text-right">
-                      <button onClick={() => removeNode(n.id)} className="p-1 rounded text-muted-foreground hover:text-rose-600">
+                      <button onClick={() => removeNode(n.id)} className="p-1 rounded text-muted-foreground hover:text-rose-600" aria-label={`Remove ${n.label}`}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>

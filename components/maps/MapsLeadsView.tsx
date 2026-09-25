@@ -25,7 +25,7 @@ interface MapsLeadsViewProps {
 }
 
 export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
-  const { state, revealMapsLead, enrichMapsLead } = useApp();
+  const { state, revealMapsLead, enrichMapsLead, showToast } = useApp();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filterRevealed, setFilterRevealed] = useState<string>("all");
@@ -67,15 +67,17 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
     }
   };
 
-  const handleBulkReveal = () => {
-    selectedIds.forEach((id) => revealMapsLead(id));
-    alert(`Successfully revealed ${selectedIds.length} Google Maps leads with verified contact details!`);
+  const handleBulkReveal = async () => {
+    const count = selectedIds.length;
+    await Promise.all(selectedIds.map((id) => revealMapsLead(id)));
+    showToast(`Checked ${count} lead(s) for real contact details — results vary by what each business has published.`);
     setSelectedIds([]);
   };
 
-  const handleBulkEnrich = () => {
-    selectedIds.forEach((id) => enrichMapsLead(id));
-    alert(`Executive enrichment completed for ${selectedIds.length} companies! Decision-makers found.`);
+  const handleBulkEnrich = async () => {
+    const count = selectedIds.length;
+    await Promise.all(selectedIds.map((id) => enrichMapsLead(id)));
+    showToast(`Ran enrichment on ${count} compan${count === 1 ? "y" : "ies"} — real hits only, no data invented for gaps.`);
     setSelectedIds([]);
   };
 
@@ -301,6 +303,7 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
                             onClick={() => setSelectedLead(lead)}
                             className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
                             title="View lead profile"
+                            aria-label="View lead profile"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </button>

@@ -6,6 +6,7 @@ import { TopBar } from "@/components/shell/TopBar";
 import { SetupWidget } from "@/components/shell/SetupWidget";
 import { ProductTour } from "@/components/shell/ProductTour";
 import { SupportChat } from "@/components/shell/SupportChat";
+import { Toast } from "@/components/shell/Toast";
 import { HashtagsSetupView } from "@/components/pipeline/HashtagsSetupView";
 import { HashtagsLeadsView } from "@/components/pipeline/HashtagsLeadsView";
 import { CompetitorsSetupView } from "@/components/pipeline/CompetitorsSetupView";
@@ -22,7 +23,7 @@ import { SettingsView } from "@/components/account/SettingsView";
 import { AdminView } from "@/components/account/AdminView";
 
 export default function AppMainPage() {
-  const [currentView, setCurrentView] = useState<string>("hashtags_setup");
+  const [currentView, setCurrentView] = useState<string>("dashboard");
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
   // Determine whether to display the 5-step "Complete your setup" widget
@@ -93,6 +94,9 @@ export default function AppMainPage() {
 
       {/* Floating Bottom-Right Support Chat Panel */}
       <SupportChat />
+
+      {/* Non-blocking notifications — never use native alert()/confirm() here */}
+      <Toast />
     </div>
   );
 }

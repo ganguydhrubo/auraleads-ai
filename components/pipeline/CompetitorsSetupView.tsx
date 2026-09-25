@@ -7,7 +7,6 @@ import {
   Trash2,
   Lock,
   ArrowRight,
-  CheckCircle2,
   AlertCircle,
   Clock,
   Sparkles,
@@ -19,29 +18,26 @@ interface CompetitorsSetupViewProps {
 }
 
 export function CompetitorsSetupView({ setCurrentView }: CompetitorsSetupViewProps) {
-  const { state, addCompetitor, deleteCompetitor } = useApp();
+  const { state, addCompetitor, deleteCompetitor, queueCompetitorScrape, showToast } = useApp();
   const [handle, setHandle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
     if (!handle.trim()) return;
     if (state.competitors.length >= 5) {
-      alert("You can add a maximum of 5 competitors per weekly cycle.");
+      showToast("You can add a maximum of 5 competitors per weekly cycle.", "error");
       return;
     }
     addCompetitor(handle);
     setHandle("");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    }, 800);
+    const result = await queueCompetitorScrape();
+    setIsSaving(false);
+    showToast(result.message, result.ok ? "info" : "error");
   };
 
   return (
@@ -142,6 +138,7 @@ export function CompetitorsSetupView({ setCurrentView }: CompetitorsSetupViewPro
                       onClick={() => deleteCompetitor(comp.id)}
                       className="p-1.5 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                       title="Remove competitor"
+                      aria-label={`Remove @${comp.username}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -152,21 +149,14 @@ export function CompetitorsSetupView({ setCurrentView }: CompetitorsSetupViewPro
           </div>
 
           {/* Save Action */}
-          <div className="flex items-center justify-between pt-4 border-t border-border">
-            <div>
-              {saveSuccess && (
-                <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
-                  <CheckCircle2 className="w-4 h-4" /> Competitors saved! Follower scraping cycle queued.
-                </span>
-              )}
-            </div>
+          <div className="flex items-center justify-end pt-4 border-t border-border">
             <button
               onClick={handleSave}
               disabled={state.competitors.length === 0 || isSaving}
               className="px-5 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40 shadow-sm transition-all flex items-center gap-2"
             >
               <Sparkles className={`w-3.5 h-3.5 ${isSaving ? "animate-spin" : ""}`} />
-              <span>{isSaving ? "Saving & Queuing Scrape..." : "Save Competitors"}</span>
+              <span>{isSaving ? "Queuing Scrape..." : "Queue Follower Scrape"}</span>
             </button>
           </div>
         </div>

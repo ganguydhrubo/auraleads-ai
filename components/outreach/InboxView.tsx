@@ -17,6 +17,7 @@ import {
   MessageSquare,
   ShieldAlert,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 import { Conversation, AIReplyRules } from "@/lib/types";
@@ -26,7 +27,7 @@ interface InboxViewProps {
 }
 
 export function InboxView({ setCurrentView }: InboxViewProps) {
-  const { state, sendMessage, updateAIReplyRules } = useApp();
+  const { state, sendMessage, updateAIReplyRules, refresh, showToast } = useApp();
   const [activeTab, setActiveTab] = useState<"leads" | "users">("leads");
   const [channelFilter, setChannelFilter] = useState<"all" | "instagram" | "email" | "whatsapp" | "x" | "linkedin">("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +64,7 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
   const handleSaveRules = () => {
     updateAIReplyRules(rules);
     setShowRulesModal(false);
-    alert("AI Reply Rules successfully updated! The assistant will auto-respond based on these parameters.");
+    showToast("AI Reply Rules updated.");
   };
 
   return (
@@ -109,8 +110,8 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
           </div>
 
           <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">0/200</span>
-            <span>DMs per hour limit</span>
+            <span className="font-semibold text-foreground">{state.user.usage.dmsSentToday}</span>
+            <span>DMs sent today</span>
           </div>
         </div>
 
@@ -123,9 +124,13 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
             <span>Edit AI Reply Rules</span>
           </button>
           <button
-            onClick={() => alert("Synchronized with active webhook streams and Gmail IMAP.")}
+            onClick={async () => {
+              await refresh();
+              showToast("Inbox refreshed.");
+            }}
             className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"
-            title="Sync Inboxes"
+            title="Refresh"
+            aria-label="Refresh inbox"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -264,6 +269,7 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
                   type="submit"
                   disabled={!replyInput.trim()}
                   className="p-2 rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-40"
+                  aria-label="Send message"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -319,17 +325,12 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
               <div className="p-3 bg-card border border-border rounded-lg space-y-2 text-xs">
                 <div className="flex items-center gap-1.5 text-primary font-semibold">
                   <Bot className="w-3.5 h-3.5" />
-                  <span>AI Co-Pilot Draft</span>
+                  <span>AI Auto-Reply</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  "Thanks for checking out our solution! Would tomorrow at 2 PM EST work for a quick 10-min overview?"
+                  Configured in "Edit AI Reply Rules" above — real replies are drafted by Groq from your business
+                  definition and this conversation's history, and sent automatically unless flagged for human handoff.
                 </p>
-                <button
-                  onClick={() => setReplyInput("Thanks for checking out our solution! Would tomorrow at 2 PM EST work for a quick 10-min overview?")}
-                  className="w-full py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 text-[11px] font-semibold"
-                >
-                  Use Suggestion
-                </button>
               </div>
             </>
           ) : null}
@@ -347,8 +348,8 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
                   History-aware conversational criteria for automated Instagram DM responses.
                 </p>
               </div>
-              <button onClick={() => setShowRulesModal(false)} className="p-1 rounded text-muted-foreground hover:text-foreground">
-                ?
+              <button onClick={() => setShowRulesModal(false)} className="p-1 rounded text-muted-foreground hover:text-foreground" aria-label="Close">
+                <X className="w-4 h-4" />
               </button>
             </div>
 

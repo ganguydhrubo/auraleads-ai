@@ -41,6 +41,37 @@ export async function searchInstagramHashtag(page: Page, hashtag: string, maxPos
   return results;
 }
 
+// Scrapes the follower list of a competitor's public Instagram account —
+// this is what powers "Competitor Leads" (Instagram's API has no endpoint
+// for a third party to list another account's followers at all).
+export async function searchInstagramFollowers(page: Page, username: string, maxFollowers = 20): Promise<ScrapedInstagramLead[]> {
+  const clean = username.replace(/^@/, "");
+  await page.goto(`https://www.instagram.com/${encodeURIComponent(clean)}/`, { waitUntil: "domcontentloaded" });
+  await pacedDelay();
+
+  const followersLink = await page.locator(`a[href="/${clean}/followers/"]`).first();
+  if (!(await followersLink.count())) throw new Error(`Could not find a followers link on @${clean}'s profile — it may be private or the page layout changed.`);
+  await followersLink.click();
+  await pacedDelay();
+
+  const dialog = page.locator('div[role="dialog"]');
+  if (!(await dialog.count())) throw new Error("Followers dialog did not open.");
+
+  const results = new Map<string, ScrapedInstagramLead>();
+  for (let i = 0; i < 6 && results.size < maxFollowers; i++) {
+    const usernames = await dialog.locator('a[role="link"] > div > span').allInnerTexts().catch(() => [] as string[]);
+    for (const u of usernames) {
+      const handle = u.trim();
+      if (handle && !results.has(handle)) results.set(handle, { username: handle, postUrl: `https://www.instagram.com/${handle}/` });
+    }
+    await dialog.locator('div[role="dialog"]').first().hover().catch(() => {});
+    await page.mouse.wheel(0, 600);
+    await pacedDelay();
+  }
+
+  return Array.from(results.values()).slice(0, maxFollowers);
+}
+
 export async function sendInstagramDirectMessage(page: Page, username: string, text: string): Promise<void> {
   await page.goto(`https://www.instagram.com/${encodeURIComponent(username)}/`, { waitUntil: "domcontentloaded" });
   await pacedDelay();
