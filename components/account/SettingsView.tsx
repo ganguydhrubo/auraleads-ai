@@ -211,6 +211,8 @@ function InstagramGraphCard({ state, loading, refresh }: any) {
     }
   };
 
+  const isInstagramLogin = state.integrations.instagram.authMethod === "instagram_login";
+
   return (
     <CardShell
       icon={<Instagram className="w-5 h-5" />}
@@ -219,6 +221,21 @@ function InstagramGraphCard({ state, loading, refresh }: any) {
       desc="For real-time inbound DM webhooks and AI auto-replies within Meta's messaging window."
       connected={state.integrations.instagram.connected}
     >
+      {isInstagramLogin ? (
+        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-700 dark:text-emerald-400">
+          Connected as @{state.integrations.instagram.username || "your account"} via Instagram Login.
+        </div>
+      ) : (
+        <a
+          href="/api/channels/instagram/oauth/start"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-rose-500 to-purple-600 text-white text-xs font-bold hover:opacity-90 shadow-sm"
+        >
+          <Instagram className="w-4 h-4" /> Connect with Instagram
+        </a>
+      )}
+
+      <p className="text-[11px] text-muted-foreground text-center">— or, connect manually with a Page Access Token (older method) —</p>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Meta App ID</label>

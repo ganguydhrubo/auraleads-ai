@@ -215,6 +215,12 @@ export interface PlatformIntegrations {
     webhookConfigured?: boolean;
     verifyToken?: string;
     igUserId?: string;
+    username?: string;
+    // "instagram_login" = connected via the real OAuth flow (Instagram API
+    // with Instagram Login); undefined/other = the older BYO Page Access
+    // Token paste flow. Determines which Graph host sends use.
+    authMethod?: "instagram_login" | "page_token";
+    tokenExpiresAt?: string;
     // Separate from the official Graph API connection above: a saved browser
     // session used by the automation worker for cold discovery/outreach,
     // since the Graph API doesn't support either.

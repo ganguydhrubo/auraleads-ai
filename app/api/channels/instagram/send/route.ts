@@ -39,8 +39,17 @@ export async function POST(request: NextRequest) {
   const token = settings?.instagram?.token;
   if (!token) return NextResponse.json({ error: "Instagram is not connected for this workspace." }, { status: 400 });
 
+  // Instagram API with Instagram Login (the current real OAuth flow) sends
+  // via graph.instagram.com using the IG user id itself, not graph.facebook.com
+  // + "me" like the older Facebook Login for Business + Page Token flow.
+  const isInstagramLogin = settings?.instagram?.authMethod === "instagram_login";
+  const igUserId = settings?.instagram?.igUserId;
+  const sendUrl = isInstagramLogin
+    ? `https://graph.instagram.com/v21.0/${igUserId}/messages?access_token=${encodeURIComponent(token)}`
+    : `https://graph.facebook.com/${GRAPH_VERSION}/me/messages?access_token=${encodeURIComponent(token)}`;
+
   try {
-    const res = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/me/messages?access_token=${encodeURIComponent(token)}`, {
+    const res = await fetch(sendUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
