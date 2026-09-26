@@ -275,6 +275,10 @@ function WhatsAppCard({ state, loading, refresh }: any) {
   const [token, setToken] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [sdkReady, setSdkReady] = useState(false);
+  const [signupBusy, setSignupBusy] = useState(false);
+  const embeddedSignupConfigId = process.env.NEXT_PUBLIC_WHATSAPP_CONFIG_ID;
+  const metaAppId = process.env.NEXT_PUBLIC_META_APP_ID;
 
   useEffect(() => {
     if (!loading) {
@@ -283,6 +287,84 @@ function WhatsAppCard({ state, loading, refresh }: any) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
+
+  // Loads Meta's JS SDK once, only when a config id is actually set — no
+  // point loading it if Embedded Signup isn't configured on this deployment.
+  useEffect(() => {
+    if (!embeddedSignupConfigId || !metaAppId) return;
+    if ((window as any).FB) {
+      setSdkReady(true);
+      return;
+    }
+    (window as any).fbAsyncInit = function () {
+      (window as any).FB.init({ appId: metaAppId, autoLogAppEvents: true, xfbml: false, version: "v21.0" });
+      setSdkReady(true);
+    };
+    const script = document.createElement("script");
+    script.src = "https://connect.facebook.net/en_US/sdk.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, [embeddedSignupConfigId, metaAppId]);
+
+  // Meta posts WABA/phone-number details via postMessage during the
+  // Embedded Signup popup flow — the FB.login code alone doesn't include them.
+  const sessionInfoRef = React.useRef<{ phoneNumberId?: string; wabaId?: string }>({});
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (!event.origin.endsWith("facebook.com")) return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "WA_EMBEDDED_SIGNUP" && data.event === "FINISH") {
+          sessionInfoRef.current = { phoneNumberId: data.data?.phone_number_id, wabaId: data.data?.waba_id };
+        }
+      } catch {
+        // not a JSON message we care about
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  const startEmbeddedSignup = () => {
+    if (!sdkReady || !embeddedSignupConfigId) return;
+    setSignupBusy(true);
+    setMessage("");
+    (window as any).FB.login(
+      async (response: any) => {
+        const code = response?.authResponse?.code;
+        const { phoneNumberId: pnId, wabaId } = sessionInfoRef.current;
+
+        if (!code || !pnId || !wabaId) {
+          setSignupBusy(false);
+          setStatus("error");
+          setMessage("Signup window closed before completing — try again.");
+          return;
+        }
+
+        const res = await fetch("/api/channels/whatsapp/embedded-signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, phoneNumberId: pnId, wabaId }),
+        });
+        const data = await res.json();
+        setSignupBusy(false);
+        if (res.ok) {
+          setStatus("ok");
+          setMessage(`Connected — ${data.displayPhone}.`);
+          await refresh();
+        } else {
+          setStatus("error");
+          setMessage(data.error || "Could not complete signup.");
+        }
+      },
+      {
+        config_id: embeddedSignupConfigId,
+        response_type: "code",
+        override_default_response_type: true,
+        extras: { setup: {}, featureType: "", sessionInfoVersion: "3" },
+      }
+    );
+  };
 
   const verify = async () => {
     setStatus("loading");
@@ -304,6 +386,21 @@ function WhatsAppCard({ state, loading, refresh }: any) {
 
   return (
     <CardShell icon={<MessageCircle className="w-5 h-5" />} iconColor="text-emerald-500" title="WhatsApp Business (Cloud API)" desc="Official Meta WhatsApp Business Platform — template messages + real webhook inbound." connected={state.integrations.whatsapp.connected}>
+      {embeddedSignupConfigId ? (
+        <button
+          onClick={startEmbeddedSignup}
+          disabled={!sdkReady || signupBusy}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#25D366] text-white text-xs font-bold hover:opacity-90 shadow-sm disabled:opacity-50 w-full"
+        >
+          {signupBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageCircle className="w-4 h-4" />}
+          Connect WhatsApp (One-Click)
+        </button>
+      ) : (
+        <p className="text-[11px] text-muted-foreground italic">One-click signup isn't configured on this deployment yet — use manual connect below.</p>
+      )}
+
+      <p className="text-[11px] text-muted-foreground text-center">— or, connect manually —</p>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Phone Number ID</label>

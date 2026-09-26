@@ -238,6 +238,7 @@ export interface PlatformIntegrations {
   };
   whatsapp: {
     connected: boolean;
+    connectMethod?: "embedded_signup" | "manual";
     phoneNumberId?: string;
     businessAccountId?: string;
     displayPhone?: string;
