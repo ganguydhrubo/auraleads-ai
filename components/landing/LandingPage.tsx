@@ -31,6 +31,29 @@ import {
   Twitter,
 } from "lucide-react";
 import { landingFaqs } from "@/lib/landing-faqs";
+import { Logo, LogoMark } from "@/components/shell/Logo";
+
+function ProductPreview() {
+  return (
+    <div className="product-preview" aria-label="Illustration of the AuraLeads discovery and qualification workspace">
+      <div className="preview-sidebar">
+        <LogoMark className="h-8 w-8" />
+        <div className="preview-sidebar-line active" /><div className="preview-sidebar-line" />
+        <div className="preview-sidebar-line short" /><div className="preview-sidebar-line" />
+      </div>
+      <div className="preview-main">
+        <div className="preview-topbar"><span>Discovery workspace</span><span className="preview-topbar-tag">Workspace preview</span></div>
+        <div className="preview-heading"><div><span className="eyebrow">SOURCE / QUALIFY / REACH OUT</span><strong>Find the right people. Then start the conversation.</strong></div><span className="preview-step">01 — 03</span></div>
+        <div className="preview-search"><MapPin size={16} /><span>Local businesses in a selected region</span><SlidersHorizontal size={16} /></div>
+        <div className="preview-grid">
+          <div className="preview-panel"><span className="preview-label">DISCOVERY SOURCES</span><div className="preview-source"><Instagram size={16} /><span>Instagram hashtags</span><CheckCircle2 size={15} /></div><div className="preview-source"><Users size={16} /><span>Competitor audiences</span><CheckCircle2 size={15} /></div><div className="preview-source"><MapPin size={16} /><span>Maps businesses</span><CheckCircle2 size={15} /></div></div>
+          <div className="preview-panel preview-flow"><span className="preview-label">QUALIFICATION FLOW</span><div><span className="flow-dot" />Source matched</div><div><span className="flow-dot" />Apply ICP rules</div><div><span className="flow-dot muted-dot" />Review before outreach</div></div>
+        </div>
+        <div className="preview-bottom"><ShieldCheck size={15} /> Illustrative interface · No live customer data shown</div>
+      </div>
+    </div>
+  );
+}
 
 export function LandingPage() {
   const [annualBilling, setAnnualBilling] = useState(false);
@@ -47,9 +70,9 @@ export function LandingPage() {
   const faqs = landingFaqs;
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
+    <div className="landing-page min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
       {/* Top Banner */}
-      <div className="bg-[#3B50F5] text-white px-4 py-2 text-xs font-semibold text-center flex items-center justify-center gap-2">
+      <div className="landing-banner bg-primary text-white px-4 py-2 text-xs font-semibold text-center flex items-center justify-center gap-2">
         <Sparkles className="w-3.5 h-3.5" />
         <span>7-day free trial · No credit card required</span>
         <Link href="/signup" className="underline hover:text-white/80 ml-2 font-bold">
@@ -58,17 +81,8 @@ export function LandingPage() {
       </div>
 
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 bg-card/85 backdrop-blur-md border-b border-border px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-base shadow-sm shrink-0">
-            AL
-          </div>
-          <div className="min-w-0">
-            <span className="font-extrabold text-foreground text-base tracking-tight flex items-center gap-1.5 truncate">
-              AuraLeads<span className="text-primary font-black">.ai</span>
-            </span>
-          </div>
-        </div>
+      <header className="landing-header sticky top-0 z-40 bg-card/90 backdrop-blur-md border-b border-border px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+        <Logo className="shrink-0" />
 
         <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
           <a href="#workflow" className="hover:text-foreground transition-colors">Workflow</a>
@@ -96,22 +110,13 @@ export function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-16 px-6 max-w-6xl mx-auto text-center space-y-6">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Next-Gen Outbound Pipeline · Powered by Groq Ultra-Fast AI</span>
-        </div>
+      <section className="landing-hero px-4 sm:px-6 max-w-6xl mx-auto w-full">
+        <div className="hero-copy">
+          <div className="hero-kicker"><span className="status-pulse" /> ONE WORKSPACE FOR OUTBOUND</div>
+          <h1>Find your next customers <span>where they already are.</span></h1>
+          <p>Source prospects from Instagram hashtags, competitor audiences, and local business listings. Apply your ICP rules, review the fit, and move into personalized outreach.</p>
 
-        <h1 className="text-4xl sm:text-6xl font-black text-foreground tracking-tight max-w-4xl mx-auto leading-[1.12]">
-          Autonomous <span className="text-primary">Instagram & Maps</span> Lead Generation for Growth Teams
-        </h1>
-
-        <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Source verified decision-makers from active hashtags, competitor followers, and local Maps businesses.
-          Qualify with multi-criteria AI filters and scale personalized DM and cold email sequences from one workflow.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3 pt-4">
           <Link
             href="/signup"
             className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 flex items-center justify-center gap-2"
@@ -128,11 +133,13 @@ export function LandingPage() {
           </a>
         </div>
 
-        <div className="flex items-center justify-center gap-6 pt-4 text-xs text-muted-foreground font-medium">
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No credit card required</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Instant 400ms Groq AI scoring</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No lock-in contract</span>
+        <div className="hero-proof flex items-center gap-6 pt-4 text-xs text-muted-foreground font-medium">
+          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> 7-day trial</span>
+          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> No card required</span>
+          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-600" /> ICP controls</span>
         </div>
+        </div>
+        <ProductPreview />
       </section>
 
       {/* Supported Channels Bar */}
@@ -163,17 +170,17 @@ export function LandingPage() {
       </section>
 
       {/* Interactive Demo Section */}
-      <section id="demo" className="py-20 px-6 max-w-5xl mx-auto space-y-8">
+      <section id="demo" className="landing-section py-20 px-6 max-w-5xl mx-auto space-y-8">
         <div className="text-center space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-primary">Interactive Demo</span>
           <h2 className="text-3xl font-extrabold text-foreground">Experience the 4-Stage Lead Pipeline</h2>
           <p className="text-xs text-muted-foreground max-w-xl mx-auto">
-            Click through our core modules to see how candidate profiles are sourced, qualified, and contacted in real time.
+            Explore an illustrative view of how sourcing, qualification, and outreach fit together. Examples are not live prospect data.
           </p>
         </div>
 
         {/* Demo Tabs */}
-        <div className="flex justify-center border-b border-border text-xs font-semibold gap-2 sm:gap-6 overflow-x-auto">
+        <div className="demo-tabs grid grid-cols-2 lg:grid-cols-4 border-b border-border text-xs font-semibold gap-1 sm:gap-3">
           {[
             { id: "hashtags", label: "1. Hashtag Engine", icon: Sparkles },
             { id: "competitors", label: "2. Competitor Audience", icon: Users },
@@ -186,7 +193,8 @@ export function LandingPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveDemoTab(tab.id as any)}
-                className={`pb-3 px-3 transition-colors border-b-2 flex items-center gap-1.5 whitespace-nowrap ${
+                aria-pressed={isActive}
+                className={`min-h-11 py-3 px-2 sm:px-3 transition-colors border-b-2 flex items-center justify-center gap-1.5 text-center ${
                   isActive ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -198,7 +206,7 @@ export function LandingPage() {
         </div>
 
         {/* Demo Display Card */}
-        <div className="bg-card border border-border rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
+        <div className="demo-card bg-card border border-border rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
           {activeDemoTab === "hashtags" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
               <div className="space-y-3">
@@ -213,18 +221,15 @@ export function LandingPage() {
               </div>
 
               <div className="space-y-2">
-                <span className="text-xs font-semibold text-foreground block">AI Validated Hashtags</span>
+                <span className="text-xs font-semibold text-foreground block">Example discovery themes</span>
                 {[
-                  { tag: "#saasgrowth", volume: "1.2M posts", score: 96 },
-                  { tag: "#b2bmarketing", volume: "850k posts", score: 94 },
-                  { tag: "#agencyfounders", volume: "320k posts", score: 91 },
+                  { tag: "#saasgrowth", volume: "SaaS operators" },
+                  { tag: "#b2bmarketing", volume: "B2B teams" },
+                  { tag: "#agencyfounders", volume: "Agency owners" },
                 ].map((item, idx) => (
-                  <div key={idx} className="p-3 rounded-lg border border-border bg-background flex items-center justify-between text-xs">
+                  <div key={idx} className="p-3 rounded-lg border border-border bg-background flex flex-wrap items-center justify-between gap-2 text-xs">
                     <span className="font-bold text-primary font-mono">{item.tag}</span>
-                    <div className="flex items-center gap-3 text-muted-foreground">
-                      <span>{item.volume}</span>
-                      <span className="text-emerald-600 font-bold">{item.score}% Match</span>
-                    </div>
+                    <span className="text-muted-foreground">{item.volume}</span>
                   </div>
                 ))}
               </div>
@@ -237,27 +242,27 @@ export function LandingPage() {
                 <span className="text-xs font-bold text-orange-600 uppercase">Audience Ingestion</span>
                 <h3 className="text-xl font-bold text-foreground">Tap Audiences Already Buying</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Track up to 5 competitor handles per weekly cycle. Our background workers ingest their active followers and filter out bots, leaving only high-intent buyers.
+                  Add competitor handles and review relevant audiences using your qualification rules before starting outreach.
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="p-3 rounded-lg border border-border bg-background flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold text-foreground">@growthfunder</span>
-                    <span className="text-[11px] text-muted-foreground block">48.2k active followers</span>
+                    <span className="font-bold text-foreground">Competitor audience A</span>
+                    <span className="text-[11px] text-muted-foreground block">Example source</span>
                   </div>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                    Ingested & Filtered
+                    Ready for review
                   </span>
                 </div>
                 <div className="p-3 rounded-lg border border-border bg-background flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-bold text-foreground">@hyperlead_ai</span>
-                    <span className="text-[11px] text-muted-foreground block">32.1k active followers</span>
+                    <span className="font-bold text-foreground">Competitor audience B</span>
+                    <span className="text-[11px] text-muted-foreground block">Example source</span>
                   </div>
                   <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                    Ingested & Filtered
+                    Ready for review
                   </span>
                 </div>
               </div>
@@ -270,19 +275,18 @@ export function LandingPage() {
                 <span className="text-xs font-bold text-emerald-600 uppercase">Polygonal Geocoding</span>
                 <h3 className="text-xl font-bold text-foreground">Hyper-Local B2B Business Scraping</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Search any metropolitan region, city, or suburb worldwide. Preview boundary outlines on Leaflet maps and reveal decision-makers with direct phone and email.
+                  Search a region and business category, inspect listings on a map, and review public contact details where available.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl bg-muted/30 border border-border space-y-3 text-xs">
-                <div className="flex justify-between items-center pb-2 border-b border-border">
-                  <span className="font-bold text-foreground">Apex Digital Marketing Agency</span>
-                  <span className="text-emerald-600 font-bold">4.9 ★ (114 reviews)</span>
+                <div className="flex justify-between items-center pb-2 border-b border-border gap-3">
+                  <span className="font-bold text-foreground">Example local business listing</span>
+                  <span className="text-emerald-600 font-bold">Public source</span>
                 </div>
                 <div className="space-y-1 text-muted-foreground text-[11px]">
-                  <p>📍 350 5th Ave, New York, NY 10118</p>
-                  <p>📞 +1 (212) 555-0192 · ✉️ contact@apexdigitalny.com</p>
-                  <p>👤 <strong>David Miller</strong> — Managing Partner</p>
+                  <p>Business category · Selected region</p>
+                  <p>Website and contact fields when published</p>
                 </div>
               </div>
             </div>
@@ -300,10 +304,10 @@ export function LandingPage() {
 
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-2 text-xs">
                 <div className="flex items-center gap-1.5 text-primary font-bold">
-                  <Bot className="w-3.5 h-3.5" /> AI Generated Instagram DM
+                  <Bot className="w-3.5 h-3.5" /> Example message draft
                 </div>
                 <p className="text-foreground leading-relaxed">
-                  "Hey Alex! Loved your recent breakdown on agency scaling bottlenecks. We built an outbound system specifically for 7-figure teams to automate lead research. Worth a 2-min look?"
+                  "Hi Alex — your recent post about agency growth caught my eye. We help teams spend less time on prospect research. Open to a short conversation?"
                 </p>
               </div>
             </div>
@@ -312,13 +316,13 @@ export function LandingPage() {
       </section>
 
       {/* 3 Core Architecture Pillars */}
-      <section id="workflow" className="py-16 bg-muted/20 border-t border-border px-6">
+      <section id="workflow" className="landing-section py-16 bg-muted/20 border-t border-border px-6">
         <div className="max-w-5xl mx-auto space-y-12">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">The Core Loop</span>
             <h2 className="text-3xl font-extrabold text-foreground">Discover · Qualify · Outreach · Measure</h2>
             <p className="text-xs text-muted-foreground max-w-xl mx-auto">
-              Everything your revenue team needs to build predictable outbound pipeline without paying for expensive database subscriptions.
+              Bring discovery, qualification, and outreach into a single, reviewable workflow.
             </p>
           </div>
 
@@ -329,7 +333,7 @@ export function LandingPage() {
               </div>
               <h3 className="text-base font-bold text-foreground">1. Lead Discovery Engine</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Continuous background collection from niche hashtags, competitor followers, and Maps listings across any global or local market.
+                Discover prospects through niche hashtags, competitor audiences, and local business listings.
               </p>
             </div>
 
@@ -357,7 +361,7 @@ export function LandingPage() {
       </section>
 
       {/* Target Audiences Grid */}
-      <section className="py-16 px-6 max-w-5xl mx-auto space-y-10">
+      <section className="landing-section py-16 px-6 max-w-5xl mx-auto space-y-10">
         <div className="text-center space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-primary">Built For Closers</span>
           <h2 className="text-3xl font-extrabold text-foreground">Designed for the Teams That Win Deals</h2>
@@ -367,19 +371,19 @@ export function LandingPage() {
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
             <h4 className="text-sm font-bold text-foreground">Lead-Gen & Marketing Agencies</h4>
             <p className="text-muted-foreground leading-relaxed">
-              Fill client sales funnels effortlessly. Enforce custom ICP rules for each client and source local B2B leads from Maps plus Instagram creators.
+              Set client-specific ICP rules and find relevant businesses and creators across Maps and Instagram.
             </p>
           </div>
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
             <h4 className="text-sm font-bold text-foreground">Ecommerce & DTC Brands</h4>
             <p className="text-muted-foreground leading-relaxed">
-              Find micro-influencers and affiliate partners at scale by monitoring relevant lifestyle hashtags and competitor followers with verified engagement.
+              Explore relevant lifestyle hashtags and competitor audiences to identify potential creators and partners.
             </p>
           </div>
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
             <h4 className="text-sm font-bold text-foreground">B2B SaaS Founders</h4>
             <p className="text-muted-foreground leading-relaxed">
-              Accelerate early customer discovery and customer interviews by engaging startup founders and tech leaders with AI-personalized outreach.
+              Find founders and operators who fit your target market, then draft more relevant first messages.
             </p>
           </div>
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
@@ -392,13 +396,13 @@ export function LandingPage() {
       </section>
 
       {/* Interactive ROI Calculator */}
-      <section id="calculator" className="py-16 bg-muted/20 border-y border-border px-6">
+      <section id="calculator" className="landing-section py-16 bg-muted/20 border-y border-border px-6">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">ROI Calculator</span>
             <h2 className="text-3xl font-extrabold text-foreground">Calculate Your Projected Pipeline Value</h2>
             <p className="text-xs text-muted-foreground">
-              See the direct financial impact of replacing manual prospecting with autonomous AI lead generation.
+              Model your own assumptions. Estimates are illustrative and are not a forecast of actual results.
             </p>
           </div>
 
@@ -411,6 +415,7 @@ export function LandingPage() {
                 </div>
                 <input
                   type="range"
+                  aria-label="Daily leads target"
                   min="20"
                   max="200"
                   step="10"
@@ -427,6 +432,7 @@ export function LandingPage() {
                 </div>
                 <input
                   type="range"
+                  aria-label="Average deal value"
                   min="500"
                   max="5000"
                   step="250"
@@ -454,13 +460,14 @@ export function LandingPage() {
                 <span className="text-[11px] text-muted-foreground block uppercase font-bold">Est. Monthly Pipeline Value</span>
                 <span className="text-3xl font-extrabold text-primary font-mono">${projectedRevenue.toLocaleString()}</span>
               </div>
+              <p className="text-[11px] text-muted-foreground">Illustration assumes 5% of sourced leads book a meeting and 25% of meetings convert. Actual results will vary.</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* Pricing Matrix */}
-      <section id="pricing" className="py-20 px-6 max-w-5xl mx-auto space-y-10">
+      <section id="pricing" className="landing-section py-20 px-6 max-w-5xl mx-auto space-y-10">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-primary">Transparent Pricing</span>
           <h2 className="text-3xl font-extrabold text-foreground">Simple Monthly & Annual Plans</h2>
@@ -470,12 +477,14 @@ export function LandingPage() {
           <div className="inline-flex items-center gap-3 p-1 rounded-xl bg-muted border border-border text-xs font-semibold mt-4">
             <button
               onClick={() => setAnnualBilling(false)}
+              aria-pressed={!annualBilling}
               className={`px-4 py-1.5 rounded-lg transition-colors ${!annualBilling ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground"}`}
             >
               Monthly
             </button>
             <button
               onClick={() => setAnnualBilling(true)}
+              aria-pressed={annualBilling}
               className={`px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${annualBilling ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground"}`}
             >
               <span>Annual</span>
@@ -516,7 +525,7 @@ export function LandingPage() {
           {/* Gold */}
           <div className="p-6 rounded-2xl border border-primary ring-1 ring-primary bg-card shadow-md space-y-5 flex flex-col justify-between relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-primary text-white text-[10px] font-bold">
-              Most Popular
+              For growing teams
             </div>
             <div className="space-y-4">
               <div>
@@ -577,7 +586,7 @@ export function LandingPage() {
       </section>
 
       {/* FAQ Accordion */}
-      <section id="faq" className="py-16 bg-muted/20 border-t border-border px-6">
+      <section id="faq" className="landing-section py-16 bg-muted/20 border-t border-border px-6">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-primary">Frequently Asked Questions</span>
@@ -591,6 +600,7 @@ export function LandingPage() {
                 <div key={idx} className="border border-border rounded-xl bg-card overflow-hidden transition-colors">
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    aria-expanded={isOpen}
                     className="w-full p-4 px-5 text-left text-xs font-bold text-foreground flex items-center justify-between hover:bg-muted/30"
                   >
                     <span>{faq.q}</span>
@@ -610,8 +620,8 @@ export function LandingPage() {
 
       {/* CTA Footer Banner */}
       <section className="py-20 px-6 max-w-5xl mx-auto text-center space-y-6">
-        <div className="p-10 rounded-3xl bg-gradient-to-br from-primary via-indigo-600 to-primary text-white shadow-2xl space-y-4">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight">Ready to Fill Your Pipeline on Autopilot?</h2>
+        <div className="landing-final-cta p-10 rounded-3xl bg-primary text-white shadow-2xl space-y-4">
+          <h2 className="text-3xl sm:text-4xl font-black tracking-tight">Make prospecting a repeatable process.</h2>
           <p className="text-xs sm:text-sm text-white/80 max-w-xl mx-auto">
             Start your free 7-day trial — no credit card required.
           </p>
@@ -631,7 +641,7 @@ export function LandingPage() {
       <footer className="border-t border-border py-12 px-6 bg-card text-xs text-muted-foreground">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="space-y-2 col-span-2 md:col-span-1">
-            <span className="font-bold text-foreground text-sm">AuraLeads.ai</span>
+            <Logo />
             <p className="text-[11px] leading-relaxed">
               Autonomous AI Instagram and Maps lead generation engine built for growth teams.
             </p>

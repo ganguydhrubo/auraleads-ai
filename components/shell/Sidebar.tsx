@@ -23,6 +23,7 @@ import {
   Layers,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
+import { Logo, LogoMark } from "@/components/shell/Logo";
 
 interface SidebarProps {
   currentView: string;
@@ -41,10 +42,11 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
         <div className="flex flex-col items-center gap-6">
           <button
             onClick={() => setCurrentView("dashboard")}
-            className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white shadow-md font-bold text-lg"
+            className="w-11 h-11 flex items-center justify-center rounded-xl transition-transform hover:scale-105"
             title="AuraLeads AI"
+            aria-label="AuraLeads AI dashboard"
           >
-            CL
+            <LogoMark className="w-10 h-10" />
           </button>
           <div className="flex flex-col gap-2 w-full px-2">
             <button
@@ -107,17 +109,9 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
     <aside className="w-72 border-r border-border bg-card flex flex-col justify-between h-screen sticky top-0 z-30 select-none transition-all duration-200 shadow-sm">
       {/* Header */}
       <div className="p-4 border-b border-border/80">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white shadow-sm font-semibold tracking-wider text-base">
-            AL
-          </div>
-          <div>
-            <div className="font-semibold text-foreground text-[15px] flex items-center gap-1.5 leading-none">
-              AuraLeads<span className="text-primary font-bold">.ai</span>
-              <span className="text-[10px] bg-primary/10 text-primary font-medium px-1.5 py-0.5 rounded-full">v2</span>
-            </div>
-            <div className="text-xs text-muted-foreground mt-1 font-normal">Autonomous Outbound Engine</div>
-          </div>
+        <div className="space-y-2">
+          <Logo />
+          <div className="text-xs text-muted-foreground pl-[46px]">Outbound workspace</div>
         </div>
       </div>
 
