@@ -635,6 +635,20 @@ function LinkedInAutomationCard({ state, refresh }: any) {
         </div>
       ) : (
         <>
+          <div className="p-3 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground space-y-1.5">
+            <p className="font-semibold text-foreground">How to get this, step by step:</p>
+            <ol className="list-decimal list-inside space-y-0.5">
+              <li>Open linkedin.com in this browser and make sure you're logged in.</li>
+              <li>Press F12 (or right-click anywhere → Inspect) to open DevTools.</li>
+              <li>Click the "Application" tab (in Chrome/Edge) — it's "Storage" in Firefox.</li>
+              <li>In the left sidebar, expand "Cookies" and click "https://www.linkedin.com".</li>
+              <li>Find the row named <span className="font-mono">li_at</span>, double-click its Value cell, select all, and copy it.</li>
+              <li>Paste that value below and click Save Session.</li>
+            </ol>
+            <a href="https://www.youtube.com/watch?v=PyO2Ll5NMGs" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-primary hover:text-primary/80 font-medium pt-0.5">
+              <PlayCircle className="w-3.5 h-3.5" /> Or watch: How to find your LinkedIn session cookie
+            </a>
+          </div>
           <input type="password" autoComplete="new-password" value={cookie} onChange={(e) => setCookie(e.target.value)} placeholder="li_at cookie value" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
           {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
           <div className="flex justify-end">
@@ -688,6 +702,17 @@ function InstagramAutomationCard({ state, refresh }: any) {
         </div>
       ) : (
         <>
+          <div className="p-3 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground space-y-1.5">
+            <p className="font-semibold text-foreground">How to get this, step by step:</p>
+            <ol className="list-decimal list-inside space-y-0.5">
+              <li>Open instagram.com in this browser and make sure you're logged in.</li>
+              <li>Press F12 (or right-click anywhere → Inspect) to open DevTools.</li>
+              <li>Click the "Application" tab (in Chrome/Edge) — it's "Storage" in Firefox.</li>
+              <li>In the left sidebar, expand "Cookies" and click "https://www.instagram.com".</li>
+              <li>Find the row named <span className="font-mono">sessionid</span>, double-click its Value cell, select all, and copy it.</li>
+              <li>Paste that value below and click Save Session.</li>
+            </ol>
+          </div>
           <input type="password" autoComplete="new-password" value={cookie} onChange={(e) => setCookie(e.target.value)} placeholder="sessionid cookie value" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono text-[11px]" />
           {message && <p className={`text-xs font-medium ${status === "ok" ? "text-emerald-600" : "text-rose-600"}`}>{message}</p>}
           <div className="flex justify-end">
