@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // A real feature manual, not marketing copy — grounded in what's actually
 // built so the assistant can't confidently invent a feature that doesn't
@@ -54,6 +55,10 @@ export async function POST(request: NextRequest) {
   if (!Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: "messages is required" }, { status: 400 });
   }
+
+  const supabaseForRateLimit = createSupabaseServerClient();
+  const rate = await checkRateLimit(supabaseForRateLimit, session.workspaceId, "support_chat", { max: 15, windowSeconds: 60 });
+  if (!rate.ok) return NextResponse.json({ reply: rate.error, escalate: false }, { status: 429 });
 
   const groqKey = process.env.GROQ_API_KEY;
   const lastUserMessage = [...messages].reverse().find((m: any) => m.role === "user")?.content || "";

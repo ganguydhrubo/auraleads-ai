@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { PLAN_LIMITS } from "@/lib/store/initial-data";
 
 export async function POST(request: NextRequest) {
+  // Was reachable with no login at all — any caller could run up real Groq
+  // cost, and the hashtagsWeek quota was only ever checked client-side, so
+  // even a logged-in user calling this directly could blow past their plan.
+  const session = await getSessionWorkspaceId();
+  if (!session) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const supabase = createSupabaseServerClient();
+
+  const rate = await checkRateLimit(supabase, session.workspaceId, "gen_hashtags", { max: 10, windowSeconds: 60 });
+  if (!rate.ok) return NextResponse.json({ error: rate.error }, { status: 429 });
+
+  const { data: workspace } = await supabase.from("workspaces").select("plan").eq("id", session.workspaceId).single();
+  const plan = (workspace?.plan || "Trial") as keyof typeof PLAN_LIMITS;
+  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+  const { count: usedThisWeek } = await supabase
+    .from("hashtags")
+    .select("id", { count: "exact", head: true })
+    .eq("workspace_id", session.workspaceId)
+    .gte("created_at", weekAgo);
+
+  const weeklyCap = PLAN_LIMITS[plan]?.hashtagsWeek ?? PLAN_LIMITS.Trial.hashtagsWeek;
+  if ((usedThisWeek || 0) >= weeklyCap) {
+    return NextResponse.json({ error: `Weekly hashtag limit reached (${weeklyCap} on your ${plan} plan) — upgrade your plan for more, or wait for next week.` }, { status: 429 });
+  }
+
   try {
     const { description, region } = await request.json();
 

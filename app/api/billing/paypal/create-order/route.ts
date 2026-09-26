@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionWorkspaceId } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
 import { getPaypalAccessToken, paypalHost, planPrice } from "@/lib/paypal";
 
 export async function POST(request: NextRequest) {
@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
         },
       ],
       application_context: {
-        return_url: `${origin}/api/billing/paypal/capture-order?plan=${encodeURIComponent(plan)}`,
+        // No `plan` param here anymore — capture-order looks up the plan
+        // from the payment_orders row recorded just below, never a
+        // client-suppliable value on the redirect URL.
+        return_url: `${origin}/api/billing/paypal/capture-order`,
         cancel_url: `${origin}/app`,
       },
     }),
@@ -47,6 +50,19 @@ export async function POST(request: NextRequest) {
 
   const approveUrl = (data.links || []).find((l: any) => l.rel === "approve")?.href;
   if (!approveUrl) return NextResponse.json({ error: "PayPal did not return an approval link." }, { status: 502 });
+
+  // capture-order looks this up instead of trusting a client-supplied plan —
+  // same reasoning as the Razorpay flow (see payment_orders migration).
+  const supabase = createSupabaseServerClient();
+  const { error: recordErr } = await supabase.from("payment_orders").insert({
+    workspace_id: session.workspaceId,
+    provider: "paypal",
+    provider_order_id: data.id,
+    plan,
+    amount: parseFloat(amount),
+    currency: "USD",
+  });
+  if (recordErr) return NextResponse.json({ error: `Could not record order: ${recordErr.message}` }, { status: 500 });
 
   return NextResponse.json({ approveUrl, orderId: data.id });
 }

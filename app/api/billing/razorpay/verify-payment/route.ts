@@ -10,12 +10,9 @@ export async function POST(request: NextRequest) {
   const session = await getSessionWorkspaceId();
   if (!session) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
-  const { plan, razorpay_order_id, razorpay_payment_id, razorpay_signature } = await request.json();
-  if (!plan || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await request.json();
+  if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
     return NextResponse.json({ error: "Missing payment details." }, { status: 400 });
-  }
-  if (!["Silver", "Gold", "Platinum"].includes(plan)) {
-    return NextResponse.json({ error: "Unknown plan" }, { status: 400 });
   }
 
   const valid = verifyRazorpayPaymentSignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
@@ -25,8 +22,29 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createSupabaseServerClient();
-  const { error } = await supabase.from("workspaces").update({ plan }).eq("id", session.workspaceId);
+
+  // The signature only proves (order_id, payment_id) are a genuine Razorpay
+  // pair — it says nothing about which plan was paid for. Never trust a
+  // client-supplied plan here; only grant whatever THIS workspace's own
+  // pending order for THIS exact order_id was created for.
+  const { data: order } = await supabase
+    .from("payment_orders")
+    .select("*")
+    .eq("provider", "razorpay")
+    .eq("provider_order_id", razorpay_order_id)
+    .eq("workspace_id", session.workspaceId)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (!order) {
+    console.error("[razorpay/verify-payment] no matching pending order for", razorpay_order_id, "workspace", session.workspaceId);
+    return NextResponse.json({ error: "Payment could not be verified." }, { status: 400 });
+  }
+
+  const { error } = await supabase.from("workspaces").update({ plan: order.plan }).eq("id", session.workspaceId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ success: true });
+  await supabase.from("payment_orders").update({ status: "completed" }).eq("id", order.id);
+
+  return NextResponse.json({ success: true, plan: order.plan });
 }

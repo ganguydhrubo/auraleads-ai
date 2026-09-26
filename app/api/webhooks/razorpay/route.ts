@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
       console.error("[webhooks/razorpay] failed to upgrade workspace:", error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+    // Keep the audit trail consistent whether the upgrade happened via the
+    // instant verify-payment path or this webhook (e.g. tab closed early).
+    await supabase
+      .from("payment_orders")
+      .update({ status: "completed" })
+      .eq("provider", "razorpay")
+      .eq("provider_order_id", paymentEntity.order_id)
+      .eq("workspace_id", workspaceId);
   } else if (event.event === "payment.failed") {
     console.error(`[webhooks/razorpay] payment failed for workspace ${workspaceId}, plan ${plan}`);
   }

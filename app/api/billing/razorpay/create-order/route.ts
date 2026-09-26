@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionWorkspaceId } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
 import { createRazorpayOrder, planPriceInrPaise, RAZORPAY_PRODUCT_TAG } from "@/lib/razorpay";
 
 export async function POST(request: NextRequest) {
@@ -21,6 +21,19 @@ export async function POST(request: NextRequest) {
       receipt: `${session.workspaceId}_${plan}_${Date.now()}`,
       notes: { product: RAZORPAY_PRODUCT_TAG, workspace_id: session.workspaceId, plan },
     });
+
+    // Recorded here, server-side, at the price we actually quoted — verify-payment
+    // trusts THIS row for which plan to grant, never whatever the client claims.
+    const supabase = createSupabaseServerClient();
+    const { error: recordErr } = await supabase.from("payment_orders").insert({
+      workspace_id: session.workspaceId,
+      provider: "razorpay",
+      provider_order_id: order.id,
+      plan,
+      amount: amountPaise,
+      currency: "INR",
+    });
+    if (recordErr) throw new Error(`Could not record order: ${recordErr.message}`);
 
     return NextResponse.json({ orderId: order.id, amountPaise, keyId });
   } catch (err: any) {

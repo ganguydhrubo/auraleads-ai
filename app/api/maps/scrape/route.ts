@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const CATEGORY_TAGS: { match: string; key: string; value: string }[] = [
   { match: "marketing", key: "office", value: "advertising_agency" },
@@ -170,6 +171,12 @@ async function runOverpassSearch(lat: number, lng: number, query: string): Promi
 export async function POST(request: NextRequest) {
   const session = await getSessionWorkspaceId();
   if (!session) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+
+  const supabaseForRateLimit = createSupabaseServerClient();
+  // Each call can trigger a billed Google Places Text Search, so this stays
+  // tight — legitimate use is "search a city, look at results", not a loop.
+  const rate = await checkRateLimit(supabaseForRateLimit, session.workspaceId, "maps_scrape", { max: 5, windowSeconds: 60 });
+  if (!rate.ok) return NextResponse.json({ error: rate.error }, { status: 429 });
 
   const body = await request.json();
   const { location, query } = body;

@@ -5,12 +5,30 @@ import { getPaypalAccessToken, paypalHost } from "@/lib/paypal";
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const token = url.searchParams.get("token");
-  const plan = url.searchParams.get("plan");
 
   const session = await getSessionWorkspaceId();
   if (!session) return NextResponse.redirect(new URL("/login", request.url));
 
-  if (!token || !plan || !["Silver", "Gold", "Platinum"].includes(plan)) {
+  if (!token) {
+    return NextResponse.redirect(new URL("/app?billing=error", request.url));
+  }
+
+  const supabase = createSupabaseServerClient();
+
+  // Never trust a client-suppliable plan (it was previously a query param
+  // on this very URL) — only grant whatever THIS workspace's own pending
+  // order for THIS exact token was actually created for.
+  const { data: order } = await supabase
+    .from("payment_orders")
+    .select("*")
+    .eq("provider", "paypal")
+    .eq("provider_order_id", token)
+    .eq("workspace_id", session.workspaceId)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  if (!order) {
+    console.error("[paypal/capture-order] no matching pending order for", token, "workspace", session.workspaceId);
     return NextResponse.redirect(new URL("/app?billing=error", request.url));
   }
 
@@ -26,9 +44,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/app?billing=error", request.url));
     }
 
-    const supabase = createSupabaseServerClient();
-    const { error } = await supabase.from("workspaces").update({ plan }).eq("id", session.workspaceId);
+    const { error } = await supabase.from("workspaces").update({ plan: order.plan }).eq("id", session.workspaceId);
     if (error) return NextResponse.redirect(new URL("/app?billing=error", request.url));
+
+    await supabase.from("payment_orders").update({ status: "completed" }).eq("id", order.id);
 
     return NextResponse.redirect(new URL("/app?billing=success", request.url));
   } catch {
