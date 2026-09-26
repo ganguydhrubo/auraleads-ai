@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
+import { getValidXAccessToken } from "@/lib/x/oauth-token";
 
 export async function POST(request: NextRequest) {
   const session = await getSessionWorkspaceId();
@@ -22,19 +23,47 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   const x = settings?.x;
-  if (!x?.connected) return NextResponse.json({ error: "X is not connected. Verify your API keys in Settings first." }, { status: 400 });
+  if (!x?.connected) return NextResponse.json({ error: "X is not connected. Connect your account in Settings first." }, { status: 400 });
 
-  const client = new TwitterApi({ appKey: x.appKey, appSecret: x.appSecret, accessToken: x.accessToken, accessSecret: x.accessSecret });
+  const oauth2Token = await getValidXAccessToken(supabase, session.workspaceId);
 
   try {
-    const recipient = await client.v2.userByUsername(lead.username);
-    if (!recipient?.data?.id) throw new Error(`Could not resolve @${lead.username} on X.`);
+    if (oauth2Token) {
+      // One-click OAuth 2.0 connection — real v2 endpoints, user-context bearer token.
+      const lookupRes = await fetch(`https://api.twitter.com/2/users/by/username/${lead.username}`, {
+        headers: { Authorization: `Bearer ${oauth2Token}` },
+      });
+      const lookupData = await lookupRes.json();
+      if (!lookupRes.ok || !lookupData.data?.id) {
+        throw new Error(lookupData.title || lookupData.detail || `Could not resolve @${lead.username} on X.`);
+      }
 
-    // v1 DM-send endpoint is used because it's available at X's Basic API tier
-    // for many developer accounts, whereas v2's DM-send endpoints require a
-    // higher (Pro+) access tier. If your account can't send DMs at all, X's
-    // API returns a clear permissions error below rather than a fake success.
-    await client.v1.sendDm({ recipient_id: recipient.data.id, text: lead.generated_dm });
+      const dmRes = await fetch(`https://api.twitter.com/2/dm_conversations/with/${lookupData.data.id}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${oauth2Token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: lead.generated_dm }),
+      });
+      if (!dmRes.ok) {
+        const dmData = await dmRes.json().catch(() => ({}));
+        throw new Error(dmData.title || dmData.detail || dmData.errors?.[0]?.message || "X DM send failed.");
+      }
+    } else {
+      // Older manual OAuth 1.0a keys, pasted from developer.x.com directly.
+      if (!x.appKey || !x.accessToken) {
+        return NextResponse.json({ error: "X is not connected. Connect your account in Settings first." }, { status: 400 });
+      }
+      const client = new TwitterApi({ appKey: x.appKey, appSecret: x.appSecret, accessToken: x.accessToken, accessSecret: x.accessSecret });
+      const recipient = await client.v2.userByUsername(lead.username);
+      if (!recipient?.data?.id) throw new Error(`Could not resolve @${lead.username} on X.`);
+
+      // v1 DM-send endpoint is used here because it's available at X's Basic
+      // API tier for many developer accounts, whereas v2's DM-send endpoints
+      // require a higher access tier under OAuth 1.0a specifically.
+      await client.v1.sendDm({ recipient_id: recipient.data.id, text: lead.generated_dm });
+    }
   } catch (err: any) {
     return NextResponse.json({ error: err?.data?.detail || err?.errors?.[0]?.message || err?.message || "X DM send failed." }, { status: 400 });
   }

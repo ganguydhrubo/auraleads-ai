@@ -253,10 +253,17 @@ export interface PlatformIntegrations {
   x: {
     connected: boolean;
     handle?: string;
+    authMethod?: "oauth1" | "oauth2";
+    // OAuth 1.0a — pasted manually from developer.x.com
     appKey?: string;
     appSecret?: string;
     accessToken?: string;
     accessSecret?: string;
+    // OAuth 2.0 — real one-click "Connect with X" flow
+    userId?: string;
+    oauth2AccessToken?: string;
+    oauth2RefreshToken?: string;
+    oauth2ExpiresAt?: string;
   };
   linkedin: {
     connected: boolean;

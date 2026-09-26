@@ -453,8 +453,25 @@ function XCard({ state, refresh }: any) {
     }
   };
 
+  const isOAuth2 = state.integrations.x.authMethod === "oauth2";
+
   return (
-    <CardShell icon={<Twitter className="w-5 h-5" />} iconColor="text-sky-500" title="X (Twitter) API v2" desc="Paste your own app + access tokens from developer.x.com — no OAuth redirect needed since it's your own account." connected={state.integrations.x.connected}>
+    <CardShell icon={<Twitter className="w-5 h-5" />} iconColor="text-sky-500" title="X (Twitter)" desc="Connect your X account with one click, or paste your own app + access tokens from developer.x.com." connected={state.integrations.x.connected}>
+      {isOAuth2 ? (
+        <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-700 dark:text-emerald-400">
+          Connected as @{state.integrations.x.handle || "your account"} via X OAuth 2.0.
+        </div>
+      ) : (
+        <a
+          href="/api/channels/x/oauth/start"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-black text-white text-xs font-bold hover:opacity-90 shadow-sm"
+        >
+          <Twitter className="w-4 h-4" /> Connect with X
+        </a>
+      )}
+
+      <p className="text-[11px] text-muted-foreground text-center">— or, connect manually with your own API keys (older method) —</p>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <input value={appKey} onChange={(e) => setAppKey(e.target.value)} placeholder="API Key" autoComplete="off" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
         <input type="password" autoComplete="new-password" value={appSecret} onChange={(e) => setAppSecret(e.target.value)} placeholder="API Secret" className="w-full px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
