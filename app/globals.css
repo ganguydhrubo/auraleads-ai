@@ -74,6 +74,12 @@
   z-index: 10;
 }
 
+/* Status and link text need a lighter ink on dark surfaces while primary
+   fills retain enough contrast for existing white button labels. */
+.text-emerald-600 { color: #087451; }
+.dark .text-emerald-600 { color: #64d8ae; }
+.dark .text-primary { color: #88c7ee; }
+
 /* Marketing surface: the application keeps the same semantic color tokens. */
 .landing-page { background-image: radial-gradient(circle at 85% 3%, hsl(var(--primary) / .075), transparent 31rem); }
 .landing-page section { scroll-margin-top: 5rem; }
