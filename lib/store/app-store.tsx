@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { AppState, BusinessProfile, Competitor, FilterCriteria, Hashtag, MessageTemplates, AIReplyRules } from "../types";
+import { AppState, BusinessProfile, Competitor, FilterCriteria, Hashtag, MessageTemplates, AIReplyRules, Channel } from "../types";
 import { emptyAppState, PLAN_LIMITS } from "./initial-data";
 import { loadWorkspaceState } from "./db";
 import { createSupabaseBrowserClient } from "../supabase/client";
@@ -24,6 +24,7 @@ interface AppContextType {
   enrichMapsLead: (id: string) => Promise<void>;
   addMapsDiscoveryBatch: (location: string, query: string, lat?: number, lng?: number) => Promise<{ ok: boolean; message: string }>;
   sendMessage: (conversationId: string, text: string) => Promise<void>;
+  syncGmail: () => Promise<{ ok: boolean; message: string }>;
   updateAIReplyRules: (rules: AIReplyRules) => Promise<void>;
   updateTemplates: (templates: MessageTemplates) => Promise<void>;
   createCampaign: (name: string, channel: "instagram" | "maps" | "whatsapp" | "x" | "linkedin", mode: "automated" | "manual" | "advanced") => Promise<void>;
@@ -302,28 +303,41 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { ok: true, message: `Found ${data.count} real business${data.count === 1 ? "" : "es"} near "${location}".` };
   };
 
+  // Real send routes per channel — each one calls the actual platform API
+  // (WhatsApp Cloud API, Meta Send API, Gmail SMTP) and only writes the
+  // message row itself once that real send succeeds. X and LinkedIn have no
+  // reply-in-thread API route yet (X's Basic tier only supports the one-shot
+  // cold DM used by campaigns; LinkedIn goes through the browser-automation
+  // worker, not a live API) — the Inbox UI disables composing for those so
+  // this never gets called with those channels.
+  const SEND_ROUTE: Partial<Record<Channel, string>> = {
+    whatsapp: "/api/channels/whatsapp/send",
+    instagram: "/api/channels/instagram/send",
+    email: "/api/channels/gmail/send",
+  };
+
   const sendMessage = async (conversationId: string, text: string) => {
     const conv = state.conversations.find((c) => c.id === conversationId);
     if (!conv) return;
 
-    const { data } = await supabase
-      .from("messages")
-      .insert({ workspace_id: wsId(), conversation_id: conversationId, sender: "me", channel: conv.channel, content: text })
-      .select()
-      .single();
-
-    if (data) {
-      setState((prev) => ({
-        ...prev,
-        conversations: prev.conversations.map((c) =>
-          c.id === conversationId
-            ? { ...c, lastActive: data.created_at, messages: [...c.messages, { id: data.id, sender: "me", text, timestamp: data.created_at }] }
-            : c
-        ),
-      }));
+    const route = SEND_ROUTE[conv.channel];
+    if (!route) {
+      showToast(`Replying isn't supported yet for ${conv.channel}.`, "error");
+      return;
     }
 
-    await supabase.from("conversations").update({ last_active: new Date().toISOString() }).eq("id", conversationId);
+    const res = await fetch(route, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId, text }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showToast(data.error || "Failed to send message.", "error");
+      return;
+    }
+
+    await refresh();
 
     // Real AI auto-reply via Groq, using this workspace's actual reply rules —
     // only fires if the workspace has configured aiReplyRules.postReplyInstruction.
@@ -336,6 +350,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         .then(() => refresh())
         .catch(() => {});
     }
+  };
+
+  const syncGmail = async (): Promise<{ ok: boolean; message: string }> => {
+    const res = await fetch("/api/channels/gmail/sync", { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, message: data.error || "Sync failed." };
+    await refresh();
+    if (data.errors?.length) return { ok: false, message: data.errors.join(" ") };
+    return { ok: true, message: data.newMessages > 0 ? `Pulled ${data.newMessages} new email${data.newMessages === 1 ? "" : "s"}.` : "No new emails." };
   };
 
   const updateAIReplyRules = async (rules: AIReplyRules) => {
@@ -521,6 +544,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         enrichMapsLead,
         addMapsDiscoveryBatch,
         sendMessage,
+        syncGmail,
         updateAIReplyRules,
         updateTemplates,
         createCampaign,

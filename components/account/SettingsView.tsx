@@ -488,7 +488,7 @@ function GmailCard({ state, refresh }: any) {
     const data = await res.json();
     if (res.ok) {
       setStatus("ok");
-      setMessage("SMTP login verified — inbox connected.");
+      setMessage("SMTP login verified. Sends will round-robin across connected accounts — use \"Check for new emails\" in the Inbox to pull in replies.");
       setEmail("");
       setAppPassword("");
       await refresh();
@@ -504,7 +504,7 @@ function GmailCard({ state, refresh }: any) {
         <Mail className="w-5 h-5 text-primary" />
         <div>
           <h3 className="text-sm font-bold text-foreground">Connected Gmail Accounts</h3>
-          <p className="text-xs text-muted-foreground">Each App Password is verified with a real SMTP login before being saved.</p>
+          <p className="text-xs text-muted-foreground">Each App Password is verified with a real SMTP login before being saved. Multiple accounts round-robin outbound sends; check the Unified Inbox to pull in replies.</p>
         </div>
       </div>
       <div className="space-y-2">

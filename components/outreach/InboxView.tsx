@@ -27,7 +27,8 @@ interface InboxViewProps {
 }
 
 export function InboxView({ setCurrentView }: InboxViewProps) {
-  const { state, loading, sendMessage, updateAIReplyRules, refresh, showToast } = useApp();
+  const { state, loading, sendMessage, syncGmail, updateAIReplyRules, refresh, showToast } = useApp();
+  const [checkingEmail, setCheckingEmail] = useState(false);
   const [activeTab, setActiveTab] = useState<"leads" | "users">("leads");
   const [channelFilter, setChannelFilter] = useState<"all" | "instagram" | "email" | "whatsapp" | "x" | "linkedin">("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -59,11 +60,31 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
 
   const activeConversation = state.conversations.find((c) => c.id === selectedConvId) || conversations[0];
 
+  const CHANNEL_LABEL: Record<string, string> = {
+    instagram: "Instagram Direct",
+    whatsapp: "WhatsApp",
+    email: "Gmail Thread",
+    x: "X DM",
+    linkedin: "LinkedIn",
+  };
+  // Only these channels have a real reply-send route wired up. X's API tier
+  // only supports the one-shot cold DM used by campaigns (no reply-in-thread
+  // endpoint), and LinkedIn goes through the browser-automation worker, not a
+  // live send API — so replying here isn't possible yet for either.
+  const REPLYABLE_CHANNELS = ["instagram", "whatsapp", "email"];
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyInput.trim() || !activeConversation) return;
     sendMessage(activeConversation.id, replyInput);
     setReplyInput("");
+  };
+
+  const handleCheckEmail = async () => {
+    setCheckingEmail(true);
+    const result = await syncGmail();
+    showToast(result.message, result.ok ? "info" : "error");
+    setCheckingEmail(false);
   };
 
   const handleSaveRules = () => {
@@ -128,6 +149,16 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
             <Bot className="w-3.5 h-3.5 text-primary" />
             <span>Edit AI Reply Rules</span>
           </button>
+          {state.integrations.gmail.accounts.length > 0 && (
+            <button
+              onClick={handleCheckEmail}
+              disabled={checkingEmail}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
+            >
+              <Mail className={`w-3.5 h-3.5 text-primary ${checkingEmail ? "animate-pulse" : ""}`} />
+              <span>{checkingEmail ? "Checking..." : "Check for new emails"}</span>
+            </button>
+          )}
           <button
             onClick={async () => {
               await refresh();
@@ -223,7 +254,7 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
                 <div>
                   <h3 className="text-xs font-bold text-foreground">{activeConversation.contactName}</h3>
                   <span className="text-[10px] text-muted-foreground font-mono">
-                    {activeConversation.channel === "instagram" ? "Instagram Direct" : "Gmail Thread"} · {activeConversation.contactHandle}
+                    {CHANNEL_LABEL[activeConversation.channel] || activeConversation.channel} · {activeConversation.contactHandle}
                   </span>
                 </div>
                 {activeConversation.needsHuman && (
@@ -262,23 +293,31 @@ export function InboxView({ setCurrentView }: InboxViewProps) {
               </div>
 
               {/* Compose box */}
-              <form onSubmit={handleSend} className="p-3 border-t border-border flex items-center gap-2 bg-card">
-                <input
-                  type="text"
-                  value={replyInput}
-                  onChange={(e) => setReplyInput(e.target.value)}
-                  placeholder={`Reply via ${activeConversation.channel === "instagram" ? "Instagram DM" : "Gmail"}...`}
-                  className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-                <button
-                  type="submit"
-                  disabled={!replyInput.trim()}
-                  className="p-2 rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-40"
-                  aria-label="Send message"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
+              {REPLYABLE_CHANNELS.includes(activeConversation.channel) ? (
+                <form onSubmit={handleSend} className="p-3 border-t border-border flex items-center gap-2 bg-card">
+                  <input
+                    type="text"
+                    value={replyInput}
+                    onChange={(e) => setReplyInput(e.target.value)}
+                    placeholder={`Reply via ${CHANNEL_LABEL[activeConversation.channel] || activeConversation.channel}...`}
+                    className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!replyInput.trim()}
+                    className="p-2 rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-40"
+                    aria-label="Send message"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                <div className="p-3 border-t border-border text-[11px] text-muted-foreground bg-muted/20 text-center">
+                  {activeConversation.channel === "x"
+                    ? "X doesn't support replying in-thread here yet — its API tier only allows the initial cold DM. Reply directly on X."
+                    : "LinkedIn messages here run through the browser-automation worker, not a live reply API — reply directly on LinkedIn."}
+                </div>
+              )}
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-xs text-muted-foreground">

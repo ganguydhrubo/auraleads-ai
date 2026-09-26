@@ -13,7 +13,7 @@ export const landingFaqs = [
   },
   {
     q: "Can I connect multiple Gmail inboxes for cold outreach?",
-    a: "Absolutely. AuraLeads supports multi-inbox rotation. You can connect multiple Gmail accounts using App Passwords or standard OAuth. The platform rotates sending volume automatically and synchronizes all replies via IMAP directly into your Unified Inbox.",
+    a: "Yes. Connect multiple Gmail accounts with an App Password (each one is verified with a real SMTP login before being saved), and sends automatically round-robin to whichever connected account has sent the least that day. Replies aren't pushed in real time — Gmail App Passwords don't support that — but a \"Check for new emails\" button in the Unified Inbox pulls in new replies from the last few days on demand.",
   },
   {
     q: "How does Groq AI power the qualification and messaging pipeline?",
