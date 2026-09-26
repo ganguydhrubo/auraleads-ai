@@ -402,6 +402,16 @@ function WhatsAppCard({ state, loading, refresh }: any) {
 
       <p className="text-[11px] text-muted-foreground text-center">— or, connect manually —</p>
 
+      <a
+        href="https://www.youtube.com/watch?v=2C99NvvOg_k"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center justify-center gap-1.5 text-[11px] text-primary hover:text-primary/80 font-medium"
+      >
+        <PlayCircle className="w-3.5 h-3.5" />
+        New to this? Watch: WhatsApp Business API setup — Phone Number ID, Business Account ID & Permanent Access Token
+      </a>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
         <div className="space-y-1">
           <label className="font-semibold text-foreground">Phone Number ID</label>
