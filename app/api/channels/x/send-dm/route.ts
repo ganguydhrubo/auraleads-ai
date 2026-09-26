@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { TwitterApi } from "twitter-api-v2";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
 import { getValidXAccessToken } from "@/lib/x/oauth-token";
+import { checkAndIncrementXUsage } from "@/lib/x/usage";
 
 export async function POST(request: NextRequest) {
   const session = await getSessionWorkspaceId();
@@ -29,6 +30,14 @@ export async function POST(request: NextRequest) {
 
   try {
     if (oauth2Token) {
+      // One-click OAuth 2.0 uses OUR shared Developer App, so this API call
+      // is billed to us, not the customer — enforce the plan's daily cap
+      // before spending it. (The OAuth 1.0a manual-keys path below uses the
+      // customer's OWN Developer App, so it's already their own cost —
+      // no cap needed there.)
+      const usage = await checkAndIncrementXUsage(supabase, session.workspaceId);
+      if (!usage.ok) return NextResponse.json({ error: usage.error }, { status: 429 });
+
       // One-click OAuth 2.0 connection — real v2 endpoints, user-context bearer token.
       const lookupRes = await fetch(`https://api.twitter.com/2/users/by/username/${lead.username}`, {
         headers: { Authorization: `Bearer ${oauth2Token}` },

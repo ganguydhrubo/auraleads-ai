@@ -13,6 +13,12 @@ export interface WorkspaceUser {
     hashtagsWeek: number;
     leadsDay: number;
     dmsHour: number;
+    // Every X action (DM send, profile lookup) costs real money under X's
+    // pay-per-use API pricing, billed to the platform's Developer App, not
+    // the customer — this caps that cost per workspace. Every other channel
+    // here (Instagram Graph API, WhatsApp Cloud API, Gmail SMTP) is free to
+    // send through, so it doesn't need an equivalent cap.
+    xActionsDay: number;
   };
   usage: {
     hashtagsUsed: number;

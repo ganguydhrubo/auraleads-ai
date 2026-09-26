@@ -13,7 +13,7 @@ export function emptyAppState(overrides?: Partial<AppState>): AppState {
       isPlatformAdmin: false,
       plan: "Trial",
       trialEndsAt: new Date(Date.now() + 7 * 86400000).toISOString(),
-      limits: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200 },
+      limits: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200, xActionsDay: 10 },
       usage: { hashtagsUsed: 0, leadsToday: 0, dmsSentToday: 0 },
     },
     setupDismissed: false,
@@ -79,9 +79,13 @@ export function emptyAppState(overrides?: Partial<AppState>): AppState {
 
 export const initialAppState = emptyAppState();
 
-export const PLAN_LIMITS: Record<"Trial" | "Silver" | "Gold" | "Platinum", { hashtagsWeek: number; leadsDay: number; dmsHour: number }> = {
-  Trial: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200 },
-  Silver: { hashtagsWeek: 10, leadsDay: 40, dmsHour: 200 },
-  Gold: { hashtagsWeek: 20, leadsDay: 80, dmsHour: 200 },
-  Platinum: { hashtagsWeek: 30, leadsDay: 200, dmsHour: 200 },
+export const PLAN_LIMITS: Record<"Trial" | "Silver" | "Gold" | "Platinum", { hashtagsWeek: number; leadsDay: number; dmsHour: number; xActionsDay: number }> = {
+  // xActionsDay is a placeholder sized to keep worst-case X API cost a small
+  // fraction of each tier's price (at roughly $0.01-0.02/action: Silver's 20
+  // caps X cost around $0.20-0.40/day, well under its $20/mo price) — a
+  // business decision to confirm/adjust, not a precise calculation.
+  Trial: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200, xActionsDay: 10 },
+  Silver: { hashtagsWeek: 10, leadsDay: 40, dmsHour: 200, xActionsDay: 20 },
+  Gold: { hashtagsWeek: 20, leadsDay: 80, dmsHour: 200, xActionsDay: 60 },
+  Platinum: { hashtagsWeek: 30, leadsDay: 200, dmsHour: 200, xActionsDay: 150 },
 };

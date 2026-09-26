@@ -434,6 +434,7 @@ function XCard({ state, refresh }: any) {
   const [accessSecret, setAccessSecret] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [agreedToXCharges, setAgreedToXCharges] = useState(false);
 
   const verify = async () => {
     setStatus("loading");
@@ -462,12 +463,35 @@ function XCard({ state, refresh }: any) {
           Connected as @{state.integrations.x.handle || "your account"} via X OAuth 2.0.
         </div>
       ) : (
-        <a
-          href="/api/channels/x/oauth/start"
-          className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-black text-white text-xs font-bold hover:opacity-90 shadow-sm"
-        >
-          <Twitter className="w-4 h-4" /> Connect with X
-        </a>
+        <div className="space-y-2.5">
+          <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-800 dark:text-amber-300 space-y-1.5">
+            <p className="font-semibold">Before you connect: X charges per message and profile lookup.</p>
+            <p>
+              Every DM and lookup sent through this one-click connection is billed to AuraLeads by X (not to you directly),
+              so your usage counts against a daily limit on your plan — up to{" "}
+              <strong>{state.user.limits.xActionsDay} X actions/day</strong> on your current {state.user.plan} plan.
+              Once you hit that limit for the day, further X sends will fail until the next day or a plan upgrade.
+            </p>
+            <label className="flex items-start gap-2 pt-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedToXCharges}
+                onChange={(e) => setAgreedToXCharges(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>I understand X usage through AuraLeads is metered and capped by my plan.</span>
+            </label>
+          </div>
+          <button
+            disabled={!agreedToXCharges}
+            onClick={() => {
+              window.location.href = "/api/channels/x/oauth/start";
+            }}
+            className="w-full flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-black text-white text-xs font-bold hover:opacity-90 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Twitter className="w-4 h-4" /> Connect with X
+          </button>
+        </div>
       )}
 
       <p className="text-[11px] text-muted-foreground text-center">— or, connect manually with your own API keys (older method) —</p>
