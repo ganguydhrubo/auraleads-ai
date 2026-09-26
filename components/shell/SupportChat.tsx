@@ -8,24 +8,22 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 export function SupportChat() {
   const { chatOpen, setChatOpen, state } = useApp();
   const [input, setInput] = useState("");
+  const [thinking, setThinking] = useState(false);
   const [messages, setMessages] = useState<{ sender: "user" | "support"; text: string; time: string }[]>([
     {
       sender: "support",
-      text: "Hi! Send us a message and it'll reach the team directly — we reply by email, usually within a business day.",
+      text: "Hi! Ask me anything about how AuraLeads works — I know the whole product. For account actions (billing, add-ons), I'll pass it to the team.",
       time: "Just now",
     },
   ]);
 
-  const handleSend = async (textToSend?: string) => {
-    const text = textToSend || input;
-    if (!text.trim()) return;
-
+  // Quick-action badges are explicit requests for a human to DO something
+  // (activate a plan, enable an add-on) — those go straight to the support
+  // queue, no point routing them through the AI first.
+  const handleQuickAction = async (text: string) => {
     setMessages((prev) => [...prev, { sender: "user", text, time: "Just now" }]);
-    setInput("");
-
     const supabase = createSupabaseBrowserClient();
     const { error } = await supabase.from("support_messages").insert({ workspace_id: state.workspaceId, message: text });
-
     setMessages((prev) => [
       ...prev,
       {
@@ -34,6 +32,46 @@ export function SupportChat() {
         time: "Just now",
       },
     ]);
+  };
+
+  const handleSend = async () => {
+    const text = input;
+    if (!text.trim() || thinking) return;
+
+    const nextMessages = [...messages, { sender: "user" as const, text, time: "Just now" }];
+    setMessages(nextMessages);
+    setInput("");
+    setThinking(true);
+
+    try {
+      const connectedChannels = Object.entries(state.integrations || {})
+        .filter(([, v]: any) => v?.connected)
+        .map(([k]) => k);
+
+      const res = await fetch("/api/support/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: nextMessages
+            .filter((m) => m.sender === "user" || m.sender === "support")
+            .slice(-10)
+            .map((m) => ({ role: m.sender === "user" ? "user" : "assistant", content: m.text })),
+          context: {
+            plan: state.user.plan,
+            connectedChannels,
+            hashtagsCount: state.hashtags?.length,
+            instagramLeadsCount: state.instagramLeads?.length,
+            mapsLeadsCount: state.mapsLeads?.length,
+          },
+        }),
+      });
+      const data = await res.json();
+      setMessages((prev) => [...prev, { sender: "support", text: data.reply || "Sorry, something went wrong — please try again.", time: "Just now" }]);
+    } catch {
+      setMessages((prev) => [...prev, { sender: "support", text: "Sorry, that didn't go through — please try again in a moment.", time: "Just now" }]);
+    } finally {
+      setThinking(false);
+    }
   };
 
   return (
@@ -67,7 +105,7 @@ export function SupportChat() {
                     Open
                   </span>
                 </div>
-                <p className="text-[11px] text-white/80">We reply by email, usually within a business day</p>
+                <p className="text-[11px] text-white/80">Ask about any feature — account requests go to the team</p>
               </div>
             </div>
             <button
@@ -82,19 +120,19 @@ export function SupportChat() {
           {/* Quick Action Badges */}
           <div className="p-2 bg-muted/40 border-b border-border/60 flex items-center gap-1.5 overflow-x-auto text-[11px]">
             <button
-              onClick={() => handleSend("Requesting free Early Access access for Silver tier")}
+              onClick={() => handleQuickAction("Requesting free Early Access access for Silver tier")}
               className="px-2 py-1 rounded bg-card border border-border text-foreground hover:bg-muted font-medium shrink-0"
             >
               Request Free Silver
             </button>
             <button
-              onClick={() => handleSend("Requesting free Early Access access for Gold tier")}
+              onClick={() => handleQuickAction("Requesting free Early Access access for Gold tier")}
               className="px-2 py-1 rounded bg-card border border-border text-foreground hover:bg-muted font-medium shrink-0"
             >
               Request Free Gold
             </button>
             <button
-              onClick={() => handleSend("Requesting Comments Scraping add-on activation")}
+              onClick={() => handleQuickAction("Requesting Comments Scraping add-on activation")}
               className="px-2 py-1 rounded bg-card border border-border text-foreground hover:bg-muted font-medium shrink-0"
             >
               Comments Add-on
@@ -127,6 +165,18 @@ export function SupportChat() {
                 </div>
               </div>
             ))}
+            {thinking && (
+              <div className="flex gap-2.5 justify-start">
+                <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                  <Bot className="w-3.5 h-3.5" />
+                </div>
+                <div className="max-w-[75%] p-3 rounded-2xl rounded-bl-none bg-muted text-muted-foreground flex gap-1 items-center">
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-bounce" />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Input */}
@@ -142,11 +192,12 @@ export function SupportChat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
-              className="flex-1 px-3 py-2 text-xs rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+              disabled={thinking}
+              className="flex-1 px-3 py-2 text-xs rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground disabled:opacity-60"
             />
             <button
               type="submit"
-              disabled={!input.trim()}
+              disabled={!input.trim() || thinking}
               className="p-2 rounded-lg bg-[#3548F3] text-white disabled:opacity-40 hover:bg-[#3548F3]/90 transition-colors"
               aria-label="Send message"
             >
