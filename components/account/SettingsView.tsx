@@ -170,13 +170,18 @@ function CardShell({ icon, iconColor, title, desc, connected, children }: any) {
   );
 }
 
+// Platform-wide constant (same value for the whole deployment, see
+// /api/config/verify-token) — cached at module scope so re-visiting
+// Settings doesn't refetch it every single time.
+let cachedVerifyToken = "";
+
 function InstagramGraphCard({ state, loading, refresh }: any) {
   const [appId, setAppId] = useState(state.integrations.instagram.appId || "");
   const [appSecret, setAppSecret] = useState(state.integrations.instagram.appSecret || "");
   const [token, setToken] = useState(state.integrations.instagram.token || "");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const [message, setMessage] = useState("");
-  const [verifyToken, setVerifyToken] = useState("");
+  const [verifyToken, setVerifyToken] = useState(cachedVerifyToken);
 
   useEffect(() => {
     if (!loading) {
@@ -188,9 +193,15 @@ function InstagramGraphCard({ state, loading, refresh }: any) {
   }, [loading]);
 
   useEffect(() => {
+    if (cachedVerifyToken) return;
     fetch("/api/config/verify-token")
       .then((r) => r.json())
-      .then((d) => d.verifyToken && setVerifyToken(d.verifyToken))
+      .then((d) => {
+        if (d.verifyToken) {
+          cachedVerifyToken = d.verifyToken;
+          setVerifyToken(d.verifyToken);
+        }
+      })
       .catch(() => {});
   }, []);
 

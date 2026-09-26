@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Sparkles,
   X,
@@ -128,6 +128,15 @@ const tourSteps = [
 
 export function ProductTour() {
   const { tourOpen, setTourOpen, activeTourStep, setActiveTourStep } = useApp();
+
+  useEffect(() => {
+    if (!tourOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTourOpen(false);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [tourOpen, setTourOpen]);
 
   if (!tourOpen) return null;
 

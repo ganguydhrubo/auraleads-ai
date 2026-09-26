@@ -26,6 +26,7 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
   const [manualTag, setManualTag] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [generateError, setGenerateError] = useState("");
 
   useEffect(() => {
     if (!loading) {
@@ -38,11 +39,18 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
   const handleGenerate = async () => {
     if (!description.trim()) return;
     setIsGenerating(true);
-    updateBusinessProfile({ description, targetRegion: region });
-    await generateHashtagsAI(description, region);
+    setGenerateError("");
+    const result = await generateHashtagsAI(description, region);
     setIsGenerating(false);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    // The server's response is what decides success/failure here — never
+    // show a success message just because the request finished without
+    // throwing (a 429/limit response finishes normally too).
+    if (result.ok) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } else {
+      setGenerateError(result.message);
+    }
   };
 
   const handleAddManual = (e: React.FormEvent) => {
@@ -142,14 +150,20 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
                   <CheckCircle2 className="w-4 h-4" /> Hashtags generated and cycle updated!
                 </span>
               )}
+              {generateError && (
+                <span className="flex items-center gap-1 text-xs text-rose-600 font-medium">
+                  <AlertCircle className="w-4 h-4" /> {generateError}
+                </span>
+              )}
             </div>
             <button
               onClick={handleGenerate}
-              disabled={!description.trim() || isGenerating}
+              disabled={!description.trim() || isGenerating || usedCount >= weeklyCap}
+              title={usedCount >= weeklyCap ? `You've used all ${weeklyCap} hashtag slots this week` : undefined}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
             >
               <Sparkles className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`} />
-              <span>{isGenerating ? "Generating & Validating..." : "Generate Hashtags"}</span>
+              <span>{isGenerating ? "Generating & Validating..." : usedCount >= weeklyCap ? "Weekly Limit Reached" : "Generate Hashtags"}</span>
             </button>
           </div>
         </div>

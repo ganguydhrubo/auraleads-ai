@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Menu,
   Bell,
@@ -38,9 +38,30 @@ const titlesMap: Record<string, { title: string; subtitle: string }> = {
 export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
   const { state, setTourOpen, updateSettings } = useApp();
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
 
   const viewInfo = titlesMap[currentView] || { title: "AuraLeads AI", subtitle: "Lead Generation Platform" };
   const unreadConversations = state.conversations.filter((c) => c.unread);
+
+  // Was only closable by re-clicking the bell — Escape and clicking anywhere
+  // else silently did nothing, which reads as a stuck/broken dropdown.
+  useEffect(() => {
+    if (!showNotifications) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setShowNotifications(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showNotifications]);
 
   return (
     <header className="h-16 border-b border-border bg-card/80 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between gap-2 sticky top-0 z-20">
@@ -97,7 +118,7 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
         </button>
 
         {/* Notification Bell */}
-        <div className="relative">
+        <div className="relative" ref={notificationsRef}>
           <button
             onClick={() => setShowNotifications(!showNotifications)}
             className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors relative"

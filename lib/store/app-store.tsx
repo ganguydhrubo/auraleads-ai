@@ -11,7 +11,7 @@ interface AppContextType {
   loading: boolean;
   refresh: () => Promise<void>;
   updateBusinessProfile: (profile: BusinessProfile) => Promise<void>;
-  generateHashtagsAI: (desc: string, region: string) => Promise<void>;
+  generateHashtagsAI: (desc: string, region: string) => Promise<{ ok: boolean; message: string }>;
   addHashtag: (tag: string) => Promise<void>;
   deleteHashtag: (id: string) => Promise<void>;
   addCompetitor: (username: string) => Promise<void>;
@@ -56,6 +56,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [toast, setToast] = useState<{ message: string; tone: "info" | "error" } | null>(null);
   const toastTimer = React.useRef<ReturnType<typeof setTimeout>>();
+  const settingsSaveTimer = React.useRef<ReturnType<typeof setTimeout>>();
 
   const showToast = useCallback((message: string, tone: "info" | "error" = "info") => {
     setToast({ message, tone });
@@ -95,7 +96,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const generateHashtagsAI = async (desc: string, region: string) => {
+  const generateHashtagsAI = async (desc: string, region: string): Promise<{ ok: boolean; message: string }> => {
     await updateBusinessProfile({ description: desc, targetRegion: region });
 
     const res = await fetch("/api/generate/hashtags", {
@@ -104,6 +105,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ description: desc, region }),
     });
     const data = await res.json();
+    // A 429 (rate limit or weekly cap) or any other server rejection must
+    // surface as a real failure — silently falling through to "0 new
+    // hashtags added, no error" is exactly how this used to show a fake
+    // success toast after the server had already said no.
+    if (!res.ok) {
+      return { ok: false, message: data.error || "Could not generate hashtags." };
+    }
+
     const existingTags = new Set(state.hashtags.map((h) => h.tag.toLowerCase()));
     const seen = new Set<string>();
     const deduped: Hashtag[] = (data.hashtags || []).filter((h: Hashtag) => {
@@ -113,7 +122,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return true;
     });
     const generated: Hashtag[] = deduped.slice(0, state.user.limits.hashtagsWeek - state.hashtags.length);
-    if (generated.length === 0) return;
+    if (generated.length === 0) {
+      return { ok: true, message: "No new hashtags to add — you may already have similar ones, or you're at your weekly limit." };
+    }
 
     const { data: inserted } = await supabase
       .from("hashtags")
@@ -130,23 +141,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       )
       .select();
 
-    if (inserted) {
-      const mapped: Hashtag[] = inserted.map((r: any) => ({
-        id: r.id,
-        tag: r.tag,
-        source: r.source,
-        validationScore: r.validation_score,
-        postsCount: r.posts_count,
-        relevanceScore: r.relevance_score,
-        active: r.active,
-      }));
-      setState((prev) => ({
-        ...prev,
-        hashtags: [...mapped, ...prev.hashtags],
-        user: { ...prev.user, usage: { ...prev.user.usage, hashtagsUsed: prev.user.usage.hashtagsUsed + mapped.length } },
-      }));
+    if (!inserted) {
+      return { ok: false, message: "Generated hashtags but couldn't save them — please try again." };
     }
+
+    const mapped: Hashtag[] = inserted.map((r: any) => ({
+      id: r.id,
+      tag: r.tag,
+      source: r.source,
+      validationScore: r.validation_score,
+      postsCount: r.posts_count,
+      relevanceScore: r.relevance_score,
+      active: r.active,
+    }));
+    setState((prev) => ({
+      ...prev,
+      hashtags: [...mapped, ...prev.hashtags],
+      user: { ...prev.user, usage: { ...prev.user.usage, hashtagsUsed: prev.user.usage.hashtagsUsed + mapped.length } },
+    }));
     await completeOnboardingStep(1);
+    return { ok: true, message: `Added ${mapped.length} new hashtag${mapped.length === 1 ? "" : "s"}.` };
   };
 
   const addHashtag = async (tag: string) => {
@@ -508,16 +522,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateSettings = async (settings: Partial<AppState["settings"]>) => {
     const merged = { ...state.settings, ...settings };
+    // Local state updates instantly (the toggle itself must feel immediate),
+    // but the server write is debounced — rapid toggling (double-clicks, or
+    // clicking through several settings quickly) shouldn't fire one upsert
+    // per click.
     setState((prev) => ({ ...prev, settings: merged }));
-    await supabase.from("app_settings").upsert({
-      workspace_id: wsId(),
-      dark_mode: merged.darkMode,
-      push_notifications: merged.pushNotifications,
-      daily_leads_email: merged.dailyLeadsEmail,
-      cycle_expiration_reminder: merged.cycleExpirationReminder,
-      automated_lead_generation: merged.automatedLeadGeneration,
-      automated_weekly_cycle: merged.automatedWeeklyCycle,
-    });
+
+    if (settingsSaveTimer.current) clearTimeout(settingsSaveTimer.current);
+    settingsSaveTimer.current = setTimeout(() => {
+      supabase.from("app_settings").upsert({
+        workspace_id: wsId(),
+        dark_mode: merged.darkMode,
+        push_notifications: merged.pushNotifications,
+        daily_leads_email: merged.dailyLeadsEmail,
+        cycle_expiration_reminder: merged.cycleExpirationReminder,
+        automated_lead_generation: merged.automatedLeadGeneration,
+        automated_weekly_cycle: merged.automatedWeeklyCycle,
+      });
+    }, 500);
   };
 
   const updateIntegrations = async (integrations: Partial<AppState["integrations"]>) => {

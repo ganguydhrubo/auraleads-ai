@@ -47,7 +47,10 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
   const [isSearching, setIsSearching] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<LocationOption | null>(sampleLocations[0]);
   const [confirmedLocation, setConfirmedLocation] = useState<LocationOption | null>(null);
-  const [queryInput, setQueryInput] = useState("Marketing Agency");
+  // Was defaulting to real text ("Marketing Agency"), indistinguishable
+  // from something the user actually typed — the field already has a
+  // placeholder and a matching quick-filter chip for this.
+  const [queryInput, setQueryInput] = useState("");
   const [isScraping, setIsScraping] = useState(false);
   const [scrapeSuccess, setScrapeSuccess] = useState(false);
   const [scrapeError, setScrapeError] = useState("");
@@ -210,8 +213,11 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
               />
             </div>
 
-            {/* Autocomplete list */}
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
+            {/* Autocomplete list — dimmed while a new search is in flight so
+                stale results (from before the last keystroke) don't read as
+                the current answer; the "Geocoding..." label above is easy to
+                miss since attention is on this list, not the heading. */}
+            <div className={`space-y-1.5 max-h-48 overflow-y-auto transition-opacity ${isSearching ? "opacity-40" : ""}`}>
               {locationsList.map((loc) => (
                 <div
                   key={loc.id}
@@ -312,7 +318,12 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
               className="w-full py-2.5 rounded-lg bg-primary text-white text-xs font-bold hover:bg-primary/90 shadow-sm flex items-center justify-center gap-2 disabled:opacity-40 transition-all"
             >
               <Sparkles className={`w-3.5 h-3.5 ${isScraping ? "animate-spin" : ""}`} />
-              <span>{isScraping ? "Searching OpenStreetMap..." : "Start Background Discovery"}</span>
+              {/* Not actually a background job — this blocks on a real API
+                  call (can take 10s+) — so it shouldn't claim to be one.
+                  "Searching..." also no longer names a specific backend,
+                  since it depends on whether GOOGLE_PLACES_API_KEY is set
+                  server-side, not something the client can see. */}
+              <span>{isScraping ? "Searching for businesses..." : "Discover Businesses"}</span>
             </button>
             {scrapeError && (
               <p className="text-[11px] text-rose-600 font-medium">{scrapeError}</p>

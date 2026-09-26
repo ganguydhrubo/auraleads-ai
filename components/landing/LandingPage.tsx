@@ -29,6 +29,8 @@ import {
   MessageCircle,
   Linkedin,
   Twitter,
+  Menu,
+  X,
 } from "lucide-react";
 import { landingFaqs } from "@/lib/landing-faqs";
 import { Logo, LogoMark } from "@/components/shell/Logo";
@@ -61,6 +63,7 @@ export function LandingPage() {
   const [calculatorLeads, setCalculatorLeads] = useState(80);
   const [dealSize, setDealSize] = useState(1500);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const monthlyLeads = calculatorLeads * 30;
   const estimatedMeetings = Math.round(monthlyLeads * 0.05);
@@ -106,8 +109,30 @@ export function LandingPage() {
             <span>Launch App</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </header>
+
+      {/* Mobile nav — the desktop nav + Sign In link are hidden below md,
+          with no other way to reach Pricing/FAQ/Sign In on a phone */}
+      {mobileMenuOpen && (
+        <div className="md:hidden sticky top-16 z-30 bg-card border-b border-border shadow-lg px-4 py-3 flex flex-col gap-1 text-sm font-semibold">
+          <a href="#workflow" onClick={() => setMobileMenuOpen(false)} className="px-2 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors">Workflow</a>
+          <a href="#channels" onClick={() => setMobileMenuOpen(false)} className="px-2 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors">Channels</a>
+          <a href="#calculator" onClick={() => setMobileMenuOpen(false)} className="px-2 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors">ROI Calculator</a>
+          <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="px-2 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors">Pricing</a>
+          <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="px-2 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors">FAQ</a>
+          <div className="border-t border-border my-1" />
+          <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="px-2 py-2.5 rounded-lg text-foreground hover:bg-muted transition-colors">Sign In</Link>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="landing-hero px-4 sm:px-6 max-w-6xl mx-auto w-full">

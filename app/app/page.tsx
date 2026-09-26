@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useApp } from "@/lib/store/app-store";
+import { LogoMark } from "@/components/shell/Logo";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { TopBar } from "@/components/shell/TopBar";
 import { SetupWidget } from "@/components/shell/SetupWidget";
@@ -23,6 +25,7 @@ import { SettingsView } from "@/components/account/SettingsView";
 import { AdminView } from "@/components/account/AdminView";
 
 export default function AppMainPage() {
+  const { loading } = useApp();
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
@@ -77,6 +80,23 @@ export default function AppMainPage() {
         return <HashtagsSetupView setCurrentView={setCurrentView} />;
     }
   };
+
+  // Was rendering the full shell immediately with the empty initial state
+  // (0 leads, "No hashtags yet", a fresh 7-day trial countdown, no email) —
+  // for the ~3s real data takes to load, that reads as broken/fake data,
+  // not "loading." A real loading state should look like loading.
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <LogoMark className="h-10 w-10 animate-pulse" />
+          <div className="w-40 h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-full w-full bg-primary rounded-full animate-pulse" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground font-sans">
