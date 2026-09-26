@@ -15,6 +15,7 @@ import {
   ExternalLink,
   Phone,
   Users,
+  Star,
   X,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
@@ -113,7 +114,7 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-foreground">Google Maps Leads</h2>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                Real B2B Places (OpenStreetMap)
+                Real B2B Places
               </span>
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
@@ -244,7 +245,14 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
                       />
                     </td>
                     <td className="p-3.5">
-                      <div className="font-bold text-foreground">{lead.name}</div>
+                      <div className="font-bold text-foreground flex items-center gap-1.5">
+                        {lead.name}
+                        {lead.rating !== null && (
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-amber-600" title={`${lead.reviewsCount ?? 0} reviews`}>
+                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {lead.rating.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
                       <span className="inline-block text-[10px] px-1.5 py-0.2 rounded bg-muted text-muted-foreground font-medium mt-0.5">
                         {lead.category}
                       </span>

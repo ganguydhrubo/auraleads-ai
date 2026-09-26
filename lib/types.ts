@@ -148,8 +148,8 @@ export interface MapsLead {
   phone: string;
   website: string;
   email: string;
-  rating: number;
-  reviewsCount: number;
+  rating: number | null;
+  reviewsCount: number | null;
   revealed: boolean;
   decision: "matched" | "blocked" | "pending";
   executives: {

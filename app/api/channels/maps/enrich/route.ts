@@ -53,8 +53,42 @@ export async function POST(request: NextRequest) {
   let foundPhone = false;
   const updates: Record<string, any> = { revealed: true, decision: "matched" };
 
-  if (lead.website) {
-    const html = await fetchWebsiteHtml(lead.website);
+  const placeId = lead.metadata?.placeId;
+  const googleKey = process.env.GOOGLE_PLACES_API_KEY;
+
+  if (placeId && googleKey) {
+    // Google-sourced lead — fetch real phone/website via Place Details
+    // (Text Search doesn't include them; this is a separate, billed call,
+    // so it only happens on-demand when the user actually reveals a lead).
+    try {
+      const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
+      url.searchParams.set("place_id", placeId);
+      url.searchParams.set("fields", "formatted_phone_number,website");
+      url.searchParams.set("key", googleKey);
+
+      const res = await fetch(url.toString(), { signal: AbortSignal.timeout(10000) });
+      const data = await res.json();
+      const details = data.result || {};
+
+      if (!lead.phone && details.formatted_phone_number) {
+        updates.phone = details.formatted_phone_number;
+        foundPhone = true;
+      }
+      if (!lead.website && details.website) {
+        updates.website = details.website;
+      }
+    } catch {
+      // fall through — reveal still marks the lead as matched, just with
+      // whatever real data was actually retrievable
+    }
+  }
+
+  // Google Places has no email field at all — if we now know the website
+  // (from Google Place Details above, or it was already on the lead from an
+  // OSM search), scrape it for a real contact email the same way either way.
+  const websiteToCheck = lead.website || updates.website;
+  if (websiteToCheck) {
+    const html = await fetchWebsiteHtml(websiteToCheck);
     if (html) {
       const emails = extractMailtos(html);
       const phone = extractPhone(html);

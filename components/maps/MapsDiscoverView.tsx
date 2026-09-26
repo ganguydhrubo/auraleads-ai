@@ -161,7 +161,7 @@ export function MapsDiscoverView({ setCurrentView }: MapsDiscoverViewProps) {
             <Compass className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">OpenStreetMap Discovery Engine</h2>
+            <h2 className="text-base font-semibold text-foreground">Real Business Discovery Engine</h2>
             <p className="text-xs text-muted-foreground">
               Live Nominatim OpenStreetMap geocoding with boundary preview and background business scraping queue.
             </p>
