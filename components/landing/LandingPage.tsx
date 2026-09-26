@@ -30,6 +30,7 @@ import {
   Linkedin,
   Twitter,
 } from "lucide-react";
+import { landingFaqs } from "@/lib/landing-faqs";
 
 export function LandingPage() {
   const [annualBilling, setAnnualBilling] = useState(false);
@@ -43,32 +44,7 @@ export function LandingPage() {
   const projectedRevenue = estimatedMeetings * Math.round(dealSize * 0.25);
   const hoursSaved = Math.round((monthlyLeads * 8) / 60);
 
-  const faqs = [
-    {
-      q: "How does AuraLeads source prospects from Instagram without getting banned?",
-      a: "Instagram's official API doesn't support cold outreach or hashtag-based discovery for third parties — no legitimate tool can do that through Meta's API. AuraLeads uses the official Graph API for what it's actually built for (replying to inbound DMs and AI auto-replies within Meta's messaging window), and a separate browser-automation worker — using your own logged-in Instagram session, with daily volume caps — for cold discovery and first-touch outreach. That second part runs outside Instagram's Terms of Service, same as similar tools on the market, and carries a real risk of account restrictions if overused.",
-    },
-    {
-      q: "Is Google Maps business data real?",
-      a: "Yes — it's sourced live from OpenStreetMap, with no fabricated results. Contact enrichment checks the business's own public website for a listed email/phone; it's only as complete as what that business has published, so some listings will have gaps rather than invented data.",
-    },
-    {
-      q: "Can I connect multiple Gmail inboxes for cold outreach?",
-      a: "Absolutely. AuraLeads supports multi-inbox rotation. You can connect multiple Gmail accounts using App Passwords or standard OAuth. The platform rotates sending volume automatically and synchronizes all replies via IMAP directly into your Unified Inbox.",
-    },
-    {
-      q: "How does Groq AI power the qualification and messaging pipeline?",
-      a: "AuraLeads runs ultra-fast Groq LPU inference (GPT-OSS-20B and 120B). It evaluates target candidate bios against your ICP rules in under 400ms and crafts unique, context-aware DMs and emails tailored to each lead's niche and bio.",
-    },
-    {
-      q: "Is AuraLeads compliant with CAN-SPAM, GDPR, and international data laws?",
-      a: "AuraLeads focuses strictly on publicly listed B2B business data. Our outbound engine enforces automatic opt-out handling, one-click unsubscribe links, and suppression list synchronization, aligning with CAN-SPAM, GDPR legitimate-interest frameworks, and the UK PECR regulations.",
-    },
-    {
-      q: "Can I try AuraLeads for free without a credit card?",
-      a: "Yes! Every new user receives a full 7-day trial of our platform with up to 10 hashtags per week and 10 qualified leads per day. No credit card is required to begin.",
-    },
-  ];
+  const faqs = landingFaqs;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col selection:bg-primary selection:text-white">
@@ -681,8 +657,8 @@ export function LandingPage() {
           <div>
             <h4 className="font-bold text-foreground mb-2">Legal & Privacy</h4>
             <ul className="space-y-1.5 text-[11px]">
-              <li><a href="#" className="hover:text-foreground">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-foreground">Terms of Service</a></li>
+              <li><Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-foreground">Terms of Service</Link></li>
               <li><a href="#" className="hover:text-foreground">CAN-SPAM & GDPR</a></li>
               <li><a href="#" className="hover:text-foreground">Security Overview</a></li>
             </ul>

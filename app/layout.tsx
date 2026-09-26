@@ -1,9 +1,33 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE_URL = "https://auraleads.online";
+const SITE_NAME = "AuraLeads AI";
+const DESCRIPTION =
+  "Find high-intent prospects from Instagram hashtags, competitors, and Google Maps, qualify them with AI filters, and scale personalized DM, email, and WhatsApp outreach from one workflow.";
+
 export const metadata: Metadata = {
-  title: "AuraLeads AI — Autonomous Instagram & Google Maps Lead Generation Engine",
-  description: "Find high-intent prospects from hashtags, competitors, and Google Maps, qualify with Groq AI filters, and scale DM and email outreach all from one workflow.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — Instagram, Google Maps & WhatsApp Lead Generation`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: DESCRIPTION,
+  applicationName: SITE_NAME,
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} — Instagram, Google Maps & WhatsApp Lead Generation`,
+    description: DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Instagram, Google Maps & WhatsApp Lead Generation`,
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({

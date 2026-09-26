@@ -1,39 +1,39 @@
 import { Metadata } from "next";
 import { LandingPage } from "@/components/landing/LandingPage";
+import { landingFaqs } from "@/lib/landing-faqs";
+
+const SITE_URL = "https://auraleads.online";
 
 export const metadata: Metadata = {
-  title: "AuraLeads AI — Autonomous Instagram & Google Maps Lead Generation Engine",
+  title: "AuraLeads AI — Instagram, Google Maps & WhatsApp Lead Generation",
   description:
-    "Autonomous B2B lead generation software for agencies, DTC brands, and SaaS founders. Source verified prospects from Instagram hashtags, competitor followers, and Google Maps with instant Groq AI qualification.",
+    "B2B lead generation software for agencies, DTC brands, and SaaS founders. Source real prospects from Instagram, Google Maps/OpenStreetMap, and WhatsApp, qualify with Groq AI, and manage outreach from one workflow.",
   keywords: [
     "AI lead generation",
     "Instagram lead generation",
-    "Google Maps scraper",
-    "Instagram DM automation",
+    "Google Maps business discovery",
+    "WhatsApp Business API",
     "B2B cold outreach",
-    "competitor follower scraper",
-    "Groq AI sales agent",
+    "Groq AI",
     "local business lead finder",
     "agency sales pipeline",
   ],
   authors: [{ name: "AuraLeads AI" }],
   creator: "AuraLeads AI",
+  alternates: { canonical: SITE_URL },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://auraleads.ai",
-    title: "AuraLeads AI — Autonomous Instagram & Google Maps Lead Generation",
+    url: SITE_URL,
+    title: "AuraLeads AI — Instagram, Google Maps & WhatsApp Lead Generation",
     description:
-      "Find high-intent prospects on Instagram & Google Maps, qualify with Groq AI, and scale personalized DM and cold email sequences.",
+      "Find real prospects on Instagram and Google Maps, qualify with Groq AI, and scale personalized DM, email, and WhatsApp outreach.",
     siteName: "AuraLeads AI",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AuraLeads AI — Autonomous Instagram & Google Maps Lead Generation",
-    description: "Scale outbound pipeline with AI Instagram DMs and Google Maps executive enrichment.",
-  },
-  alternates: {
-    canonical: "https://auraleads.ai",
+    title: "AuraLeads AI — Instagram, Google Maps & WhatsApp Lead Generation",
+    description: "Real Instagram, Google Maps, and WhatsApp lead generation with Groq AI qualification.",
   },
 };
 
@@ -43,53 +43,51 @@ export default function Home() {
     "@graph": [
       {
         "@type": "Organization",
-        "@id": "https://auraleads.ai/#organization",
+        "@id": `${SITE_URL}/#organization`,
         name: "AuraLeads AI",
-        url: "https://auraleads.ai",
-        logo: "https://auraleads.ai/logo.png",
-        sameAs: ["https://twitter.com/AuraLeadsAI", "https://github.com/ganguydhrubo"],
+        url: SITE_URL,
+        // No logo/sameAs listed here — we don't have a dedicated square logo
+        // asset or real, active social profiles to point to yet. Add them
+        // once they exist rather than inventing placeholders.
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: "AuraLeads AI",
+        publisher: { "@id": `${SITE_URL}/#organization` },
       },
       {
         "@type": "SoftwareApplication",
-        "@id": "https://auraleads.ai/#software",
-        name: "AuraLeads AI Platform",
+        "@id": `${SITE_URL}/#software`,
+        name: "AuraLeads AI",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
-        offers: {
-          "@type": "Offer",
-          price: "29.00",
-          priceCurrency: "USD",
-        },
+        offers: [
+          { "@type": "Offer", name: "Silver", price: "20.00", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Gold", price: "50.00", priceCurrency: "USD" },
+          { "@type": "Offer", name: "Platinum", price: "100.00", priceCurrency: "USD" },
+        ],
         featureList: [
-          "Instagram Hashtag Discovery Engine",
-          "Competitor Follower Audience Scraper",
-          "Leaflet Google Maps Polygonal Geocoding",
-          "Groq High-Speed AI Qualification",
-          "Unified Multi-Channel Outreach Inbox",
-          "Automated Cold DM & Gmail Sequences",
+          "Instagram Graph API messaging with AI auto-replies",
+          "WhatsApp Business Cloud API messaging",
+          "Google Maps / OpenStreetMap business discovery",
+          "Groq AI hashtag and message generation",
+          "Unified multi-channel outreach inbox",
+          "Gmail cold email sending",
         ],
       },
       {
         "@type": "FAQPage",
-        "@id": "https://auraleads.ai/#faq",
-        mainEntity: [
-          {
-            "@type": "Question",
-            name: "How does AuraLeads source prospects from Instagram without getting banned?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "AuraLeads utilizes official Meta Graph APIs for messaging while dispatching bulk actions through safe, randomized batch throttling (max 200 DMs/hr with 5-minute cooldowns) and optional residential browser extension dispatch.",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "Is Google Maps business data accurate and enriched with direct emails?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "Yes. Our Maps discovery engine queries live geocoded OpenStreetMap and Google Places nodes, identifying verified business contacts and executive decision-makers.",
-            },
-          },
-        ],
+        "@id": `${SITE_URL}/#faq`,
+        // Sourced from the exact same array rendered visibly on the page —
+        // see components/landing/LandingPage.tsx — so this can't drift from
+        // what a visitor actually reads.
+        mainEntity: landingFaqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
       },
     ],
   };
