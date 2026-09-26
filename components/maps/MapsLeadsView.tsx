@@ -112,7 +112,7 @@ export function MapsLeadsView({ setCurrentView }: MapsLeadsViewProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-foreground">Google Maps Leads</h2>
+              <h2 className="text-base font-bold text-foreground">Maps Leads</h2>
               <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
                 Real B2B Places
               </span>

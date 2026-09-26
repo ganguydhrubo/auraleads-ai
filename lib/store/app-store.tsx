@@ -104,7 +104,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ description: desc, region }),
     });
     const data = await res.json();
-    const generated: Hashtag[] = (data.hashtags || []).slice(0, state.user.limits.hashtagsWeek - state.hashtags.length);
+    const existingTags = new Set(state.hashtags.map((h) => h.tag.toLowerCase()));
+    const seen = new Set<string>();
+    const deduped: Hashtag[] = (data.hashtags || []).filter((h: Hashtag) => {
+      const key = h.tag.toLowerCase();
+      if (existingTags.has(key) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const generated: Hashtag[] = deduped.slice(0, state.user.limits.hashtagsWeek - state.hashtags.length);
     if (generated.length === 0) return;
 
     const { data: inserted } = await supabase
@@ -246,7 +254,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
     const data = await res.json();
     if (!res.ok) return { ok: false, message: data.error || "Could not queue discovery." };
-    await completeOnboardingStep(3);
+    // Step 3 ("Generate your first leads") is intentionally NOT marked complete
+    // here — queuing a job isn't the same as a lead existing. It's derived from
+    // real lead rows in loadWorkspaceData instead.
     return { ok: true, message: "Queued. The automation worker will surface new profiles here as it finds them — check back in a few minutes." };
   };
 
@@ -474,16 +484,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (error || !inserted) return { ok: false, message: error?.message || "Could not create leads." };
 
     let queued = 0;
+    let firstError: string | null = null;
     for (const lead of inserted) {
       const res = await fetch("/api/automation/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ platform: "instagram", action: "message", payload: { leadId: lead.id } }),
       });
-      if (res.ok) queued++;
+      if (res.ok) {
+        queued++;
+      } else if (!firstError) {
+        const data = await res.json().catch(() => ({}));
+        firstError = data.error || "Could not queue DM job.";
+      }
     }
 
     await refresh();
+    if (queued === 0 && firstError) {
+      return { ok: false, message: `Created ${inserted.length} lead(s), but couldn't queue any DM jobs: ${firstError}` };
+    }
     return { ok: true, message: `Created ${inserted.length} lead(s) and queued ${queued} DM job(s).` };
   };
 

@@ -23,7 +23,7 @@ const tourSteps = [
     step: 1,
     title: "Welcome to AuraLeads AI!",
     subtitle: "Your complete outbound lead generation operating system.",
-    description: "Discover verified prospects across Instagram hashtags, competitor follower networks, and local Google Maps businesses. Qualify them with AI, craft personalized outreach, and automate inbox replies.",
+    description: "Discover verified prospects across Instagram hashtags, competitor follower networks, and local Maps businesses. Qualify them with AI, craft personalized outreach, and automate inbox replies.",
     icon: Sparkles,
   },
   {
@@ -51,7 +51,7 @@ const tourSteps = [
     step: 5,
     title: "Hashtag Research Panel",
     subtitle: "AI-powered volume & relevance validation.",
-    description: "Review real-time post volume, engagement velocity, and suitability ratings for every suggested hashtag before adding it to your weekly cycle.",
+    description: "Review AI-estimated post volume, engagement velocity, and suitability ratings for every suggested hashtag before adding it to your weekly cycle.",
     icon: Hash,
   },
   {
@@ -107,7 +107,7 @@ const tourSteps = [
     step: 13,
     title: "Analytics & Funnel Dashboard",
     subtitle: "Total visibility into outreach performance.",
-    description: "Monitor sent messages, open rates, and reply percentages across Instagram DMs and Gmail. Track which hashtags and competitors generate your highest converting leads.",
+    description: "Monitor sent messages and reply percentages across Instagram DMs and Gmail. Track which hashtags and competitors generate your highest converting leads.",
     icon: BarChart3,
   },
   {
@@ -121,7 +121,7 @@ const tourSteps = [
     step: 15,
     title: "Ready to Get Started!",
     subtitle: "Your pipeline is ready to fill.",
-    description: "Start by defining your business in Hashtag Setup or searching a local region in Google Maps Discovery. Let's start generating revenue!",
+    description: "Start by defining your business in Hashtag Setup or searching a local region in Maps Discovery. Let's start generating revenue!",
     icon: Sparkles,
   },
 ];

@@ -24,8 +24,8 @@ const titlesMap: Record<string, { title: string; subtitle: string }> = {
   competitors_setup: { title: "Manage Competitors", subtitle: "Track competitor profiles to source their active followers" },
   competitors_leads: { title: "Competitor Leads", subtitle: "Prospects sourced from your competitor follower lists" },
   filters: { title: "Qualification Rules & Filters", subtitle: "Define strict ICP criteria for follower limits, themes, and contacts" },
-  maps_discover: { title: "Google Maps Discovery", subtitle: "Select geographic regions and search local business verticals" },
-  maps_leads: { title: "Google Maps Leads", subtitle: "Revealed business leads with verified contacts and executive profiles" },
+  maps_discover: { title: "Maps Discovery", subtitle: "Select geographic regions and search local business verticals" },
+  maps_leads: { title: "Maps Leads", subtitle: "Revealed business leads with verified contacts and executive profiles" },
   inbox: { title: "Unified Outreach Inbox", subtitle: "Direct message threads, email conversations, and AI auto-reply controls" },
   campaigns: { title: "Outreach Campaigns", subtitle: "Automated, manual, and browser-assisted multi-channel sequences" },
   templates: { title: "Message Templates", subtitle: "AI prompt criteria and personalized cold outreach copywriting" },
@@ -43,23 +43,23 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
   const unreadConversations = state.conversations.filter((c) => c.unread);
 
   return (
-    <header className="h-16 border-b border-border bg-card/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-20">
-      <div className="flex items-center gap-4">
+    <header className="h-16 border-b border-border bg-card/80 backdrop-blur-md px-3 sm:px-6 flex items-center justify-between gap-2 sticky top-0 z-20">
+      <div className="flex items-center gap-2 sm:gap-4 min-w-0">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
           title="Toggle Sidebar"
           aria-label="Toggle Sidebar"
         >
           <Menu className="w-4 h-4" />
         </button>
-        <div>
-          <h1 className="text-base font-semibold text-foreground leading-tight">{viewInfo.title}</h1>
-          <p className="text-xs text-muted-foreground hidden sm:block">{viewInfo.subtitle}</p>
+        <div className="min-w-0">
+          <h1 className="text-base font-semibold text-foreground leading-tight truncate">{viewInfo.title}</h1>
+          <p className="text-xs text-muted-foreground hidden sm:block truncate">{viewInfo.subtitle}</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Daily Quota Indicator */}
         <div className="hidden md:flex items-center gap-2 bg-muted/60 border border-border/80 px-3 py-1.5 rounded-full text-xs">
           <Clock className="w-3.5 h-3.5 text-primary" />
@@ -71,10 +71,11 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
         {/* Website Guide / Product Tour Button */}
         <button
           onClick={() => setTourOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-md bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold transition-colors"
+          title="Website Guide"
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Website Guide</span>
+          <span className="hidden sm:inline">Website Guide</span>
         </button>
 
         {/* Dark Mode Toggle */}

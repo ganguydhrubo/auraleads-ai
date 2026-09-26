@@ -28,6 +28,7 @@ const nextConfig = {
               "frame-src https://www.facebook.com https://web.facebook.com",
               "object-src 'none'",
               "base-uri 'self'",
+              "frame-ancestors 'self'",
             ].join("; "),
           },
         ],

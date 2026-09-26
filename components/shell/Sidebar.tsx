@@ -227,11 +227,11 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
                   </div>
                 </button>
 
-                {/* Google Maps */}
+                {/* Maps (OpenStreetMap-backed, not a Google product) */}
                 <div className="space-y-0.5 pt-1">
                   <div className="text-[11px] font-medium text-muted-foreground px-2 pt-1 flex items-center gap-1.5">
                     <MapPin className="w-3 h-3 text-emerald-500" />
-                    <span>Google Maps</span>
+                    <span>Maps</span>
                   </div>
                   <button
                     onClick={() => setCurrentView("maps_discover")}

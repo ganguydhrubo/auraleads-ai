@@ -39,7 +39,12 @@ export function AdminView() {
     setLoading(true);
     const [jobsRes, nodesRes] = await Promise.all([
       fetch("/api/automation/jobs").then((r) => r.json()),
-      supabase.from("worker_nodes").select("*").order("created_at", { ascending: false }),
+      // Worker nodes are shared platform infrastructure, not per-workspace
+      // data — only the platform_admins allowlist can read this (RLS), so
+      // don't even ask if we already know we're not on it.
+      state.user.isPlatformAdmin
+        ? supabase.from("worker_nodes").select("*").order("created_at", { ascending: false })
+        : Promise.resolve({ data: [] as WorkerNode[] }),
     ]);
     setJobs(jobsRes.jobs || []);
     setNodes((nodesRes.data as WorkerNode[]) || []);
@@ -104,10 +109,12 @@ export function AdminView() {
           <Layers className="w-3.5 h-3.5" />
           <span>Automation Job Queue</span>
         </button>
-        <button onClick={() => setActiveTab("nodes")} className={`pb-2.5 transition-colors border-b-2 flex items-center gap-1.5 ${activeTab === "nodes" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
-          <Server className="w-3.5 h-3.5" />
-          <span>Worker Nodes</span>
-        </button>
+        {state.user.isPlatformAdmin && (
+          <button onClick={() => setActiveTab("nodes")} className={`pb-2.5 transition-colors border-b-2 flex items-center gap-1.5 ${activeTab === "nodes" ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
+            <Server className="w-3.5 h-3.5" />
+            <span>Worker Nodes</span>
+          </button>
+        )}
       </div>
 
       {activeTab === "jobs" && (
@@ -146,7 +153,7 @@ export function AdminView() {
         </div>
       )}
 
-      {activeTab === "nodes" && (
+      {activeTab === "nodes" && state.user.isPlatformAdmin && (
         <div className="space-y-4">
           <div className="p-4 bg-muted/30 border border-border rounded-xl flex flex-col sm:flex-row gap-2 text-xs">
             <input value={newNodeLabel} onChange={(e) => setNewNodeLabel(e.target.value)} placeholder="Node label (e.g. railway-worker-1)" className="flex-1 px-3 py-2 rounded-lg border border-border bg-background text-foreground" />

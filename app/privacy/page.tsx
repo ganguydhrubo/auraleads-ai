@@ -25,7 +25,7 @@ export default function PrivacyPolicyPage() {
               <li>Account information you provide directly: email address, password (hashed, never stored in plain text).</li>
               <li>Business profile information you enter: business description, target region, hashtags, filter criteria, message templates.</li>
               <li>Third-party credentials you choose to connect: Instagram, WhatsApp, X, and Gmail access tokens — encrypted at rest, used only to operate the features you connect them for.</li>
-              <li>Lead data you collect through the product from public sources (Instagram, Google Maps/OpenStreetMap) or your own connected accounts.</li>
+              <li>Lead data you collect through the product from public sources (Instagram, OpenStreetMap) or your own connected accounts.</li>
               <li>Usage data necessary to operate the service (e.g. which features you use, error logs).</li>
             </ul>
           </section>

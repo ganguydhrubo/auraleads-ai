@@ -212,6 +212,7 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
     conversationsRes,
     messagesRes,
     campaignsRes,
+    platformAdminRes,
   ] = await Promise.all([
     supabase.from("workspaces").select("*").eq("id", workspaceId).single(),
     supabase.from("business_profiles").select("*").eq("workspace_id", workspaceId).maybeSingle(),
@@ -227,6 +228,10 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
     supabase.from("conversations").select("*").eq("workspace_id", workspaceId).order("last_active", { ascending: false }),
     supabase.from("messages").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: true }),
     supabase.from("campaigns").select("*").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+    // Separate from workspace_members.role — see WorkspaceUser.isPlatformAdmin.
+    // Every user can only ever see their OWN row here (RLS), so this just
+    // answers "am I on the allowlist", nothing more.
+    supabase.from("platform_admins").select("user_id").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const base = emptyAppState();
@@ -249,13 +254,19 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
       id: user.id,
       email: user.email || "",
       role: membership.role as "user" | "admin",
+      isPlatformAdmin: !!platformAdminRes.data,
       plan,
       trialEndsAt: workspace?.trial_ends_at || base.user.trialEndsAt,
       limits: PLAN_LIMITS[plan],
       usage: { hashtagsUsed, leadsToday, dmsSentToday },
     },
     setupDismissed: onboardingRes.data?.setup_dismissed ?? false,
-    onboarding: onboardingRes.data?.steps?.length ? onboardingRes.data.steps : base.onboarding,
+    // Step 3 ("Generate your first leads") is derived from real lead rows
+    // rather than the stored flag — queuing a discovery job isn't the same
+    // as a lead actually showing up, so the persisted value can't be trusted.
+    onboarding: (onboardingRes.data?.steps?.length ? onboardingRes.data.steps : base.onboarding).map((s: any) =>
+      s.id === 3 ? { ...s, completed: leads.length > 0 } : s
+    ),
     businessProfile: profileRes.data
       ? { description: profileRes.data.description, targetRegion: profileRes.data.target_region }
       : base.businessProfile,

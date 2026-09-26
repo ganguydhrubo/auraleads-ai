@@ -219,10 +219,46 @@ async function runJob(job: Job) {
   }
 }
 
+// The app has no other way to tell whether a worker is actually running —
+// without this, it queues jobs and claims success even when nothing will
+// ever pick them up. See lib/automation/worker-status.ts, which the API
+// checks before accepting new jobs.
+const WORKER_LABEL = process.env.WORKER_LABEL || `social-worker-${process.pid}`;
+let workerNodeId: string | null = null;
+
+async function registerNode() {
+  const { data: existing } = await supabase.from("worker_nodes").select("id").eq("label", WORKER_LABEL).maybeSingle();
+
+  if (existing) {
+    workerNodeId = existing.id;
+    await supabase.from("worker_nodes").update({ status: "running", last_heartbeat: new Date().toISOString() }).eq("id", existing.id);
+  } else {
+    const { data: created } = await supabase
+      .from("worker_nodes")
+      .insert({ label: WORKER_LABEL, kind: "scraper", status: "running", last_heartbeat: new Date().toISOString() })
+      .select()
+      .single();
+    workerNodeId = created?.id ?? null;
+  }
+}
+
+async function heartbeat() {
+  if (!workerNodeId) return;
+  await supabase.from("worker_nodes").update({ status: "running", last_heartbeat: new Date().toISOString() }).eq("id", workerNodeId);
+}
+
+async function markStopped() {
+  if (!workerNodeId) return;
+  await supabase.from("worker_nodes").update({ status: "idle" }).eq("id", workerNodeId);
+}
+
 async function loop() {
-  console.log("[social-worker] polling for jobs...");
+  console.log(`[social-worker] registering as "${WORKER_LABEL}" and polling for jobs...`);
+  await registerNode();
+
   while (true) {
     try {
+      await heartbeat();
       const job = await claimNextJob();
       if (!job) {
         await sleep(POLL_INTERVAL_MS);
@@ -243,5 +279,8 @@ async function loop() {
     }
   }
 }
+
+process.on("SIGINT", async () => { await markStopped(); process.exit(0); });
+process.on("SIGTERM", async () => { await markStopped(); process.exit(0); });
 
 loop();

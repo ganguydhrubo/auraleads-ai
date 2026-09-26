@@ -4,12 +4,12 @@ import "./globals.css";
 const SITE_URL = "https://auraleads.online";
 const SITE_NAME = "AuraLeads AI";
 const DESCRIPTION =
-  "Find high-intent prospects from Instagram hashtags, competitors, and Google Maps, qualify them with AI filters, and scale personalized DM, email, and WhatsApp outreach from one workflow.";
+  "Find high-intent prospects from Instagram hashtags, competitors, and Maps, qualify them with AI filters, and scale personalized DM, email, and WhatsApp outreach from one workflow.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — Instagram, Google Maps & WhatsApp Lead Generation`,
+    default: `${SITE_NAME} — Instagram, Maps & WhatsApp Lead Generation`,
     template: `%s · ${SITE_NAME}`,
   },
   description: DESCRIPTION,
@@ -20,12 +20,12 @@ export const metadata: Metadata = {
     type: "website",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} — Instagram, Google Maps & WhatsApp Lead Generation`,
+    title: `${SITE_NAME} — Instagram, Maps & WhatsApp Lead Generation`,
     description: DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} — Instagram, Google Maps & WhatsApp Lead Generation`,
+    title: `${SITE_NAME} — Instagram, Maps & WhatsApp Lead Generation`,
     description: DESCRIPTION,
   },
 };

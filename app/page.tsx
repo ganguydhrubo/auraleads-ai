@@ -5,13 +5,13 @@ import { landingFaqs } from "@/lib/landing-faqs";
 const SITE_URL = "https://auraleads.online";
 
 export const metadata: Metadata = {
-  title: "AuraLeads AI — Instagram, Google Maps & WhatsApp Lead Generation",
+  title: "AuraLeads AI — Instagram, Maps & WhatsApp Lead Generation",
   description:
-    "B2B lead generation software for agencies, DTC brands, and SaaS founders. Source real prospects from Instagram, Google Maps/OpenStreetMap, and WhatsApp, qualify with Groq AI, and manage outreach from one workflow.",
+    "B2B lead generation software for agencies, DTC brands, and SaaS founders. Source real prospects from Instagram, Maps (OpenStreetMap), and WhatsApp, qualify with Groq AI, and manage outreach from one workflow.",
   keywords: [
     "AI lead generation",
     "Instagram lead generation",
-    "Google Maps business discovery",
+    "Maps business discovery",
     "WhatsApp Business API",
     "B2B cold outreach",
     "Groq AI",
@@ -25,15 +25,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: SITE_URL,
-    title: "AuraLeads AI — Instagram, Google Maps & WhatsApp Lead Generation",
+    title: "AuraLeads AI — Instagram, Maps & WhatsApp Lead Generation",
     description:
-      "Find real prospects on Instagram and Google Maps, qualify with Groq AI, and scale personalized DM, email, and WhatsApp outreach.",
+      "Find real prospects on Instagram and Maps, qualify with Groq AI, and scale personalized DM, email, and WhatsApp outreach.",
     siteName: "AuraLeads AI",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AuraLeads AI — Instagram, Google Maps & WhatsApp Lead Generation",
-    description: "Real Instagram, Google Maps, and WhatsApp lead generation with Groq AI qualification.",
+    title: "AuraLeads AI — Instagram, Maps & WhatsApp Lead Generation",
+    description: "Real Instagram, Maps, and WhatsApp lead generation with Groq AI qualification.",
   },
 };
 
@@ -71,7 +71,7 @@ export default function Home() {
         featureList: [
           "Instagram Graph API messaging with AI auto-replies",
           "WhatsApp Business Cloud API messaging",
-          "Google Maps / OpenStreetMap business discovery",
+          "Maps / OpenStreetMap business discovery",
           "Groq AI hashtag and message generation",
           "Unified multi-channel outreach inbox",
           "Gmail cold email sending",

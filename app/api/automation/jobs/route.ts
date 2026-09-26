@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
+import { hasLiveWorker } from "@/lib/automation/worker-status";
 
 // Enqueues a browser-automation job for the shared LinkedIn/Instagram worker
 // (see /workers/social-worker). Neither platform has an official API for
@@ -31,6 +32,15 @@ export async function POST(request: NextRequest) {
   if (!connected) {
     return NextResponse.json(
       { error: `Connect your ${platform} browser session in Settings before running automation jobs.` },
+      { status: 400 }
+    );
+  }
+
+  // Don't claim a job is "queued" if nothing is actually online to run it —
+  // that's exactly what silently rots in automation_jobs as status=queued forever.
+  if (!(await hasLiveWorker(supabase))) {
+    return NextResponse.json(
+      { error: "No automation worker is currently online to run this job. Start the social-worker process (see Admin → Worker Nodes) and try again." },
       { status: 400 }
     );
   }

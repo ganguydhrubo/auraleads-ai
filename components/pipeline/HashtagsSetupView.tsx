@@ -177,12 +177,14 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
               type="text"
               value={manualTag}
               onChange={(e) => setManualTag(e.target.value)}
-              placeholder="Add custom hashtag (e.g. #marketingconsultant)..."
-              className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground"
+              placeholder={usedCount >= weeklyCap ? `Weekly limit reached (${weeklyCap}/${weeklyCap}) — remove a hashtag to add another` : "Add custom hashtag (e.g. #marketingconsultant)..."}
+              disabled={usedCount >= weeklyCap}
+              className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={!manualTag.trim() || usedCount >= weeklyCap}
+              title={usedCount >= weeklyCap ? `You've used all ${weeklyCap} hashtag slots this week` : undefined}
               className="px-4 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-lg hover:bg-muted border border-border disabled:opacity-40"
             >
               Add Hashtag

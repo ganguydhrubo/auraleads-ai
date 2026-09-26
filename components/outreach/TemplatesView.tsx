@@ -160,7 +160,13 @@ export function TemplatesView() {
                 </div>
 
                 <div className="p-2.5 rounded-lg bg-muted/40 border border-border text-[11px] text-muted-foreground">
-                  Signature preview: <strong className="text-foreground">{templates.fromName}</strong> at <strong className="text-foreground">{templates.companyName}</strong>
+                  Signature preview:{" "}
+                  <strong className="text-foreground">{templates.fromName || "(your name)"}</strong>
+                  {templates.companyName ? (
+                    <>
+                      {" "}at <strong className="text-foreground">{templates.companyName}</strong>
+                    </>
+                  ) : null}
                 </div>
 
                 <div className="space-y-1">

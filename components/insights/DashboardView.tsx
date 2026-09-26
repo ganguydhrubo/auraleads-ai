@@ -18,6 +18,12 @@ export function DashboardView() {
   const igSent = state.instagramLeads.filter((l) => l.dmSent).length;
   const igReplied = state.instagramLeads.filter((l) => l.replied).length;
 
+  // "Instagram Discovery" specifically means the automated hashtag/competitor
+  // pipeline — a hand-typed Manual Grid handle isn't a discovered profile, so
+  // it's excluded here even though it still counts in "Total Leads Collected".
+  const discoveredInstagram = state.instagramLeads.filter((l) => l.source !== "manual");
+  const totalInstagramDiscovered = discoveredInstagram.length;
+
   const totalMaps = state.mapsLeads.length;
   const revealedMaps = state.mapsLeads.filter((l) => l.revealed).length;
 
@@ -71,7 +77,7 @@ export function DashboardView() {
             <Instagram className="w-4 h-4 text-rose-500" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-foreground font-mono">{totalInstagram}</span>
+            <span className="text-3xl font-extrabold text-foreground font-mono">{totalInstagramDiscovered}</span>
             <span className="text-xs text-muted-foreground">profiles found</span>
           </div>
           <div className="flex items-center gap-3 pt-1 text-xs text-muted-foreground border-t border-border/60">
@@ -83,7 +89,7 @@ export function DashboardView() {
 
         <div className="p-5 rounded-xl border border-border bg-card shadow-sm space-y-3">
           <div className="flex items-center justify-between text-xs text-muted-foreground font-medium">
-            <span>Google Maps Places</span>
+            <span>Maps Places (OpenStreetMap)</span>
             <MapPin className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -131,7 +137,7 @@ export function DashboardView() {
                 <div key={h.id} className="py-2.5 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-foreground font-mono">{h.tag}</span>
-                    <span className="text-[11px] text-muted-foreground block">{h.postsCount} total volume</span>
+                    <span className="text-[11px] text-muted-foreground block">{h.postsCount} est. volume</span>
                   </div>
                   <div className="text-right">
                     <span className="font-semibold text-emerald-600">{pct(matched, fromTag.length)} Match Yield</span>

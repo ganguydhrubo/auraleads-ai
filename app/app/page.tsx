@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { TopBar } from "@/components/shell/TopBar";
 import { SetupWidget } from "@/components/shell/SetupWidget";
@@ -25,6 +25,13 @@ import { AdminView } from "@/components/account/AdminView";
 export default function AppMainPage() {
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  // The expanded sidebar is 288px — on a phone that's most of the screen,
+  // leaving almost no room for content. Start collapsed there; desktop
+  // still defaults to expanded.
+  useEffect(() => {
+    if (window.innerWidth < 768) setCollapsed(true);
+  }, []);
 
   // Determine whether to display the 5-step "Complete your setup" widget
   const showSetupWidget =

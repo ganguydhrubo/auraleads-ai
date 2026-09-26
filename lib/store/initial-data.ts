@@ -10,6 +10,7 @@ export function emptyAppState(overrides?: Partial<AppState>): AppState {
       id: "",
       email: "",
       role: "user",
+      isPlatformAdmin: false,
       plan: "Trial",
       trialEndsAt: new Date(Date.now() + 7 * 86400000).toISOString(),
       limits: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200 },

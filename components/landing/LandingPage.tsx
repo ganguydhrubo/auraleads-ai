@@ -58,13 +58,13 @@ export function LandingPage() {
       </div>
 
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 bg-card/85 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-base shadow-sm">
+      <header className="sticky top-0 z-40 bg-card/85 backdrop-blur-md border-b border-border px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-base shadow-sm shrink-0">
             AL
           </div>
-          <div>
-            <span className="font-extrabold text-foreground text-base tracking-tight flex items-center gap-1.5">
+          <div className="min-w-0">
+            <span className="font-extrabold text-foreground text-base tracking-tight flex items-center gap-1.5 truncate">
               AuraLeads<span className="text-primary font-black">.ai</span>
             </span>
           </div>
@@ -78,16 +78,16 @@ export function LandingPage() {
           <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <Link
             href="/login"
-            className="text-xs font-semibold text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
+            className="hidden sm:inline-block text-xs font-semibold text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-lg hover:bg-muted transition-colors"
           >
             Sign In
           </Link>
           <Link
             href="/app"
-            className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-all shadow-sm flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary/90 transition-all shadow-sm flex items-center gap-1.5 whitespace-nowrap"
           >
             <span>Launch App</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -103,11 +103,11 @@ export function LandingPage() {
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-black text-foreground tracking-tight max-w-4xl mx-auto leading-[1.12]">
-          Autonomous <span className="text-primary">Instagram & Google Maps</span> Lead Generation for Growth Teams
+          Autonomous <span className="text-primary">Instagram & Maps</span> Lead Generation for Growth Teams
         </h1>
 
         <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-          Source verified decision-makers from active hashtags, competitor followers, and local Google Maps businesses.
+          Source verified decision-makers from active hashtags, competitor followers, and local Maps businesses.
           Qualify with multi-criteria AI filters and scale personalized DM and cold email sequences from one workflow.
         </p>
 
@@ -131,7 +131,7 @@ export function LandingPage() {
         <div className="flex items-center justify-center gap-6 pt-4 text-xs text-muted-foreground font-medium">
           <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No credit card required</span>
           <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Instant 400ms Groq AI scoring</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> Cancel anytime</span>
+          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-emerald-500" /> No lock-in contract</span>
         </div>
       </section>
 
@@ -144,7 +144,7 @@ export function LandingPage() {
               <Instagram className="w-3.5 h-3.5 text-rose-500" /> Instagram (Hashtags, Followers & DMs)
             </span>
             <span className="px-3 py-1.5 rounded-lg bg-card border border-border flex items-center gap-1.5 text-foreground shadow-2xs">
-              <MapPin className="w-3.5 h-3.5 text-emerald-500" /> Google Maps (Places & Executives)
+              <MapPin className="w-3.5 h-3.5 text-emerald-500" /> Maps (Places & Executives)
             </span>
             <span className="px-3 py-1.5 rounded-lg bg-card border border-border flex items-center gap-1.5 text-foreground shadow-2xs">
               <Mail className="w-3.5 h-3.5 text-primary" /> Gmail (Multi-Inbox Cold Email)
@@ -329,7 +329,7 @@ export function LandingPage() {
               </div>
               <h3 className="text-base font-bold text-foreground">1. Lead Discovery Engine</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Continuous background collection from niche hashtags, competitor followers, and Google Maps listings across any global or local market.
+                Continuous background collection from niche hashtags, competitor followers, and Maps listings across any global or local market.
               </p>
             </div>
 
@@ -367,7 +367,7 @@ export function LandingPage() {
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
             <h4 className="text-sm font-bold text-foreground">Lead-Gen & Marketing Agencies</h4>
             <p className="text-muted-foreground leading-relaxed">
-              Fill client sales funnels effortlessly. Enforce custom ICP rules for each client and source local B2B leads from Google Maps plus Instagram creators.
+              Fill client sales funnels effortlessly. Enforce custom ICP rules for each client and source local B2B leads from Maps plus Instagram creators.
             </p>
           </div>
           <div className="p-6 rounded-2xl border border-border bg-card space-y-2">
@@ -464,7 +464,7 @@ export function LandingPage() {
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-primary">Transparent Pricing</span>
           <h2 className="text-3xl font-extrabold text-foreground">Simple Monthly & Annual Plans</h2>
-          <p className="text-xs text-muted-foreground">Start free for 7 days. Pay with PayPal or credit card. Cancel anytime.</p>
+          <p className="text-xs text-muted-foreground">Start free for 7 days. Pay with PayPal or credit card. To cancel or change your plan, contact support.</p>
 
           {/* Billing Switcher */}
           <div className="inline-flex items-center gap-3 p-1 rounded-xl bg-muted border border-border text-xs font-semibold mt-4">
@@ -633,7 +633,7 @@ export function LandingPage() {
           <div className="space-y-2 col-span-2 md:col-span-1">
             <span className="font-bold text-foreground text-sm">AuraLeads.ai</span>
             <p className="text-[11px] leading-relaxed">
-              Autonomous AI Instagram and Google Maps lead generation engine built for growth teams.
+              Autonomous AI Instagram and Maps lead generation engine built for growth teams.
             </p>
           </div>
           <div>

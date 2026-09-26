@@ -2,6 +2,11 @@ export interface WorkspaceUser {
   id: string;
   email: string;
   role: "user" | "admin";
+  // "admin" above just means owner of THIS workspace — every new signup gets
+  // it. isPlatformAdmin is a separate, much smaller allowlist (see
+  // platform_admins table) for whoever operates the shared infra (worker
+  // nodes, proxy pool) across every tenant.
+  isPlatformAdmin: boolean;
   plan: "Trial" | "Silver" | "Gold" | "Platinum";
   trialEndsAt: string;
   limits: {
@@ -78,7 +83,7 @@ export interface InstagramLead {
   category: string;
   location: string;
   email: string;
-  source: "hashtag" | "competitor";
+  source: "hashtag" | "competitor" | "manual";
   sourceRef: string;
   decision: "matched" | "blocked" | "pending";
   foundAt: string;

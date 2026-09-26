@@ -84,7 +84,7 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
             }`}
           >
             <MapPin className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Google Maps Email Sequences</span>
+            <span>Maps Email Sequences</span>
           </button>
         </div>
 
@@ -263,7 +263,7 @@ export function CampaignsView({ setCurrentView }: CampaignsViewProps) {
                 Bulk sends run against your own logged-in Instagram/LinkedIn session — see Settings → Browser Automation to
                 connect it.
                 {state.user.role === "admin" && (
-                  <> (Runs on <code>/workers/social-worker</code>; watch job status in Admin → Automation Job Queue.)</>
+                  <> (Requires a background automation worker to be running; watch job status in Admin → Automation Job Queue.)</>
                 )}
               </p>
             </div>

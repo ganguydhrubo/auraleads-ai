@@ -80,7 +80,7 @@ export function SettingsView() {
               This is outside each platform's supported integration path and can result in account restrictions — keep
               volumes low.
               {state.user.role === "admin" && (
-                <> (Runs on a separate worker service you deploy — see <code>/workers/social-worker</code>.)</>
+                <> (Requires a background automation worker to be running — check Admin → Worker Nodes.)</>
               )}
             </p>
           </div>

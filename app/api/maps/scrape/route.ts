@@ -117,55 +117,54 @@ async function runOverpassSearch(lat: number, lng: number, query: string): Promi
     "https://overpass.private.coffee/api/interpreter",
   ];
 
-  let lastError = "";
+  // Public Overpass instances are frequently overloaded, and a query can
+  // legitimately hang for 20s+ before failing. Racing all mirrors at once
+  // (instead of trying them one at a time) means a single slow/dead mirror
+  // no longer adds its full timeout to the user's wait.
+  const attempts = OVERPASS_MIRRORS.map(async (mirror) => {
+    const res = await fetch(mirror, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "AuraLeadsAI/1.0 (+https://auraleads.online; contact@auraleads.online)",
+        Accept: "*/*",
+      },
+      body: `data=${encodeURIComponent(overpassQuery)}`,
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!res.ok) throw new Error(`${mirror} returned ${res.status}`);
+    return res.json();
+  });
 
-  for (const mirror of OVERPASS_MIRRORS) {
-    try {
-      const res = await fetch(mirror, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "AuraLeadsAI/1.0 (+https://auraleads.online; contact@auraleads.online)",
-          Accept: "*/*",
-        },
-        body: `data=${encodeURIComponent(overpassQuery)}`,
-        signal: AbortSignal.timeout(20000),
-      });
+  const outcomes = await Promise.allSettled(attempts);
+  const succeeded = outcomes.find((o) => o.status === "fulfilled") as PromiseFulfilledResult<any> | undefined;
 
-      if (!res.ok) {
-        lastError = `${mirror} returned ${res.status}`;
-        continue;
-      }
-
-      const data = await res.json();
-      const elements = data.elements || [];
-
-      const results: NormalizedResult[] = [];
-      for (const el of elements) {
-        const tags = el.tags || {};
-        if (!tags.name) continue;
-        const address = [tags["addr:housenumber"], tags["addr:street"]].filter(Boolean).join(" ");
-        results.push({
-          name: tags.name,
-          category: query,
-          address: address || "",
-          phone: tags.phone || tags["contact:phone"] || null,
-          website: tags.website || tags["contact:website"] || null,
-          email: tags.email || tags["contact:email"] || null,
-          rating: null,
-          reviewsCount: null,
-          metadata: { source: "osm" },
-        });
-      }
-
-      return { results };
-    } catch (err: any) {
-      lastError = `${mirror} failed: ${err.message}`;
-      continue;
-    }
+  if (!succeeded) {
+    const errors = outcomes.map((o) => (o as PromiseRejectedResult).reason?.message || "unknown error");
+    console.error(`[maps/scrape] all Overpass mirrors failed: ${errors.join(" | ")}`);
+    return { error: "The map data provider is temporarily unavailable — try again shortly." };
   }
 
-  return { error: `All Overpass mirrors failed (${lastError}) — try again shortly.` };
+  const elements = succeeded.value.elements || [];
+  const results: NormalizedResult[] = [];
+  for (const el of elements) {
+    const tags = el.tags || {};
+    if (!tags.name) continue;
+    const address = [tags["addr:housenumber"], tags["addr:street"]].filter(Boolean).join(" ");
+    results.push({
+      name: tags.name,
+      category: query,
+      address: address || "",
+      phone: tags.phone || tags["contact:phone"] || null,
+      website: tags.website || tags["contact:website"] || null,
+      email: tags.email || tags["contact:email"] || null,
+      rating: null,
+      reviewsCount: null,
+      metadata: { source: "osm" },
+    });
+  }
+
+  return { results };
 }
 
 export async function POST(request: NextRequest) {

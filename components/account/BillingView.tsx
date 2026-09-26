@@ -239,7 +239,7 @@ export function BillingView() {
       <div className="p-4 bg-muted/20 border border-border rounded-xl flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Payments are processed securely via PayPal or major credit/debit cards. Cancel anytime from Settings.</span>
+          <span>Payments are processed securely via PayPal or major credit/debit cards. To cancel or change your plan, contact support.</span>
         </div>
         <span className="font-mono text-[11px]">256-bit TLS Encrypted</span>
       </div>
@@ -270,7 +270,7 @@ export function BillingView() {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Includes instant quota upgrade and 7-day initial guarantee. Cancel anytime.
+                Quota upgrades instantly on payment. To cancel or change your plan, contact support.
               </p>
             </div>
 
