@@ -12,6 +12,7 @@ import {
   XCircle,
   Loader2,
   ShieldAlert,
+  PlayCircle,
 } from "lucide-react";
 import { useApp } from "@/lib/store/app-store";
 
@@ -525,6 +526,15 @@ function GmailCard({ state, refresh }: any) {
       <form onSubmit={connect} autoComplete="off" className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="outreach@agency.com" autoComplete="off" className="text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground" />
         <input type="password" autoComplete="new-password" required value={appPassword} onChange={(e) => setAppPassword(e.target.value)} placeholder="16-character App Password" className="text-xs px-3 py-2 rounded-lg border border-border bg-background text-foreground font-mono" />
+        <a
+          href="https://www.youtube.com/watch?v=hNm3Umd0bbc"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="sm:col-span-2 flex items-center gap-1.5 text-[11px] text-primary hover:text-primary/80 font-medium"
+        >
+          <PlayCircle className="w-3.5 h-3.5" />
+          Not sure how to get one? Watch: How to generate a Gmail App Password
+        </a>
         <button type="submit" disabled={status === "loading"} className="sm:col-span-2 px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold border border-border hover:bg-muted flex items-center justify-center gap-2 disabled:opacity-50">
           {status === "loading" && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Verify & Connect Inbox
