@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 
+// Overpass mirrors are raced with a 20s timeout each (see runOverpassSearch)
+// — the platform's default 10s function limit would kill the request before
+// that timeout ever gets a chance to matter.
+export const maxDuration = 30;
+
 const CATEGORY_TAGS: { match: string; key: string; value: string }[] = [
   { match: "marketing", key: "office", value: "advertising_agency" },
   { match: "advertising", key: "office", value: "advertising_agency" },
@@ -116,6 +121,8 @@ async function runOverpassSearch(lat: number, lng: number, query: string): Promi
     "https://overpass-api.de/api/interpreter",
     "https://overpass.kumi.systems/api/interpreter",
     "https://overpass.private.coffee/api/interpreter",
+    "https://overpass.openstreetmap.fr/api/interpreter",
+    "https://overpass.osm.ch/api/interpreter",
   ];
 
   // Public Overpass instances are frequently overloaded, and a query can
@@ -131,7 +138,7 @@ async function runOverpassSearch(lat: number, lng: number, query: string): Promi
         Accept: "*/*",
       },
       body: `data=${encodeURIComponent(overpassQuery)}`,
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) throw new Error(`${mirror} returned ${res.status}`);
     return res.json();
