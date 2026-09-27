@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useApp } from "@/lib/store/app-store";
 import { LogoMark } from "@/components/shell/Logo";
 import { Sidebar } from "@/components/shell/Sidebar";
@@ -24,16 +25,49 @@ import { BillingView } from "@/components/account/BillingView";
 import { SettingsView } from "@/components/account/SettingsView";
 import { AdminView } from "@/components/account/AdminView";
 
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  missing_code: "Connection was cancelled or didn't complete — please try again.",
+  instagram_not_configured: "Instagram isn't configured on this deployment yet — contact support.",
+  x_not_configured: "X isn't configured on this deployment yet — contact support.",
+  x_session_expired: "That connection attempt expired — please try again.",
+};
+
 export default function AppMainPage() {
-  const { loading } = useApp();
+  const { loading, showToast } = useApp();
   const [currentView, setCurrentView] = useState<string>("dashboard");
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   // The expanded sidebar is 288px — on a phone that's most of the screen,
   // leaving almost no room for content. Start collapsed there; desktop
   // still defaults to expanded.
   useEffect(() => {
     if (window.innerWidth < 768) setCollapsed(true);
+  }, []);
+
+  // Instagram/X OAuth callbacks and PayPal billing redirect back here with
+  // ?view=/?error=/?<channel>=connected/?billing=success|error — none of it
+  // was ever read, so every connect/payment outcome (success AND failure)
+  // was silently dropped with zero user-visible feedback.
+  useEffect(() => {
+    const view = searchParams.get("view");
+    const error = searchParams.get("error");
+    const instagram = searchParams.get("instagram");
+    const x = searchParams.get("x");
+    const billing = searchParams.get("billing");
+
+    if (view) setCurrentView(view);
+    if (error) showToast(OAUTH_ERROR_MESSAGES[error] || `Connection failed: ${error}`, "error");
+    if (instagram === "connected") showToast("Instagram connected.", "info");
+    if (x === "connected") showToast("X connected.", "info");
+    if (billing === "success") showToast("Payment successful — plan upgraded.", "info");
+    if (billing === "error") showToast("Payment could not be completed — please try again or contact support.", "error");
+
+    if (view || error || instagram || x || billing) {
+      router.replace("/app", { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Determine whether to display the 5-step "Complete your setup" widget

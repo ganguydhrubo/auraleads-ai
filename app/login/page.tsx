@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Sparkles, Lock, Mail, ShieldCheck } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { Logo } from "@/components/shell/Logo";
 
 // This page needs a live user session/auth client at request time, so it
 // can't be statically prerendered at build time (which would require real
@@ -77,13 +78,8 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col justify-center py-12 sm:px-6 lg:px-8 selection:bg-primary selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center space-y-3">
-        <Link href="/" className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
-            AL
-          </div>
-          <span className="font-extrabold text-foreground text-xl tracking-tight">
-            AuraLeads<span className="text-primary">.ai</span>
-          </span>
+        <Link href="/" className="inline-flex items-center justify-center">
+          <Logo />
         </Link>
         <h2 className="text-xl font-bold tracking-tight text-foreground">
           Sign in to your multi-tenant workspace
