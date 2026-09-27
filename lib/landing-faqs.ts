@@ -4,8 +4,8 @@
 // methods on anything imported from a "use client" module.
 export const landingFaqs = [
   {
-    q: "How does AuraLeads source prospects from Instagram without getting banned?",
-    a: "Instagram's official API doesn't support cold outreach or hashtag-based discovery for third parties — no legitimate tool can do that through Meta's API. AuraLeads uses the official Graph API for what it's actually built for (replying to inbound DMs and AI auto-replies within Meta's messaging window), and a separate browser-automation worker — using your own logged-in Instagram session, with daily volume caps — for cold discovery and first-touch outreach. That second part runs outside Instagram's Terms of Service, same as similar tools on the market, and carries a real risk of account restrictions if overused.",
+    q: "How does AuraLeads source prospects from Instagram and LinkedIn without getting banned?",
+    a: "Neither Instagram's nor LinkedIn's official API supports cold outreach or hashtag/connection-based discovery for third parties — no legitimate tool can do that through their APIs. AuraLeads uses Instagram's official Graph API for what it's actually built for (replying to inbound DMs and AI auto-replies within Meta's messaging window), and a separate browser-automation worker — using your own logged-in Instagram or LinkedIn session, with daily volume caps — for cold discovery and first-touch outreach on either platform. That browser-automation part runs outside each platform's Terms of Service, same as similar tools on the market, and carries a real risk of account restrictions if overused.",
   },
   {
     q: "Is Google Maps business data real?",

@@ -58,7 +58,6 @@ function ProductPreview() {
 }
 
 export function LandingPage() {
-  const [annualBilling, setAnnualBilling] = useState(false);
   const [activeDemoTab, setActiveDemoTab] = useState<"hashtags" | "competitors" | "maps" | "outreach">("hashtags");
   const [calculatorLeads, setCalculatorLeads] = useState(80);
   const [dealSize, setDealSize] = useState(1500);
@@ -320,7 +319,7 @@ export function LandingPage() {
           {activeDemoTab === "outreach" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
               <div className="space-y-3">
-                <span className="text-xs font-bold text-primary uppercase">Autonomous Outreach</span>
+                <span className="text-xs font-bold text-primary uppercase">AI-Drafted Outreach</span>
                 <h3 className="text-xl font-bold text-foreground">AI Personalized DMs & Auto-Replies</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Never send generic mail-merge blasts. AuraLeads drafts individual messages based on the prospect's real bio and answers incoming replies automatically with built-in human handoff alerts.
@@ -366,7 +365,7 @@ export function LandingPage() {
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
                 <SlidersHorizontal className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-foreground">2. Neural ICP Qualification</h3>
+              <h3 className="text-base font-bold text-foreground">2. ICP Qualification Rules</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Strict follower brackets, content theme alignment, contact requirements, and negative keyword blocklists filter spam before outreach.
               </p>
@@ -378,7 +377,7 @@ export function LandingPage() {
               </div>
               <h3 className="text-base font-bold text-foreground">3. Unified Multi-Channel Outreach</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Personalized Instagram DMs and Gmail sequences dispatched with human typing delays, 200/hr safety caps, and AI conversational auto-replies.
+                Personalized Instagram DMs and Gmail sequences dispatched with human typing delays, safe daily sending caps, and AI conversational auto-replies.
               </p>
             </div>
           </div>
@@ -495,27 +494,9 @@ export function LandingPage() {
       <section id="pricing" className="landing-section py-20 px-6 max-w-5xl mx-auto space-y-10">
         <div className="text-center space-y-3">
           <span className="text-xs font-bold uppercase tracking-wider text-primary">Transparent Pricing</span>
-          <h2 className="text-3xl font-extrabold text-foreground">Simple Monthly & Annual Plans</h2>
-          <p className="text-xs text-muted-foreground">Start free for 7 days. Pay with PayPal or credit card. To cancel or change your plan, contact support.</p>
+          <h2 className="text-3xl font-extrabold text-foreground">Simple Monthly Plans</h2>
+          <p className="text-xs text-muted-foreground">Start free for 7 days. Pay with PayPal, Razorpay (UPI/cards/wallets), or major credit/debit cards. Cancel or downgrade anytime from Billing.</p>
 
-          {/* Billing Switcher */}
-          <div className="inline-flex items-center gap-3 p-1 rounded-xl bg-muted border border-border text-xs font-semibold mt-4">
-            <button
-              onClick={() => setAnnualBilling(false)}
-              aria-pressed={!annualBilling}
-              className={`px-4 py-1.5 rounded-lg transition-colors ${!annualBilling ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground"}`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setAnnualBilling(true)}
-              aria-pressed={annualBilling}
-              className={`px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${annualBilling ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground"}`}
-            >
-              <span>Annual</span>
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-600 font-bold px-1.5 py-0.2 rounded">Save 20%</span>
-            </button>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -528,14 +509,14 @@ export function LandingPage() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-extrabold text-foreground font-mono">
-                  {annualBilling ? "$16" : "$20"}
+                  $20
                 </span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
               <ul className="space-y-2 text-xs text-muted-foreground border-t border-border pt-3">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 10 Hashtags per week</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 40 Qualified leads / day</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 200 DMs per hour pacing</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 20 safe outreach DMs/day</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> AI hashtag validation</li>
               </ul>
             </div>
@@ -559,7 +540,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-extrabold text-foreground font-mono">
-                  {annualBilling ? "$40" : "$50"}
+                  $50
                 </span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
@@ -588,7 +569,7 @@ export function LandingPage() {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-3xl font-extrabold text-foreground font-mono">
-                  {annualBilling ? "$80" : "$100"}
+                  $100
                 </span>
                 <span className="text-xs text-muted-foreground">/mo</span>
               </div>
@@ -597,7 +578,7 @@ export function LandingPage() {
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> 200 Qualified leads / day</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> AI Instagram auto-replies</li>
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Advanced yield analytics</li>
-                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Dedicated account manager</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> WhatsApp priority support</li>
               </ul>
             </div>
             <Link
@@ -668,7 +649,7 @@ export function LandingPage() {
           <div className="space-y-2 col-span-2 md:col-span-1">
             <Logo />
             <p className="text-[11px] leading-relaxed">
-              Autonomous AI Instagram and Maps lead generation engine built for growth teams.
+              AI-assisted Instagram and Maps lead generation for growth teams.
             </p>
           </div>
           <div>
@@ -683,10 +664,10 @@ export function LandingPage() {
           <div>
             <h4 className="font-bold text-foreground mb-2">Integrations</h4>
             <ul className="space-y-1.5 text-[11px]">
-              <li><Link href="/app" className="hover:text-foreground">Meta Graph API</Link></li>
-              <li><Link href="/app" className="hover:text-foreground">OpenStreetMap</Link></li>
-              <li><Link href="/app" className="hover:text-foreground">Gmail Multi-Inbox</Link></li>
-              <li><Link href="/app" className="hover:text-foreground">Groq AI Inference</Link></li>
+              <li>Meta Graph API</li>
+              <li>OpenStreetMap</li>
+              <li>Gmail Multi-Inbox</li>
+              <li>Groq AI Inference</li>
             </ul>
           </div>
           <div>
@@ -701,7 +682,7 @@ export function LandingPage() {
         </div>
         <div className="max-w-6xl mx-auto pt-8 mt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
           <span>© 2026 AuraLeads AI. All rights reserved.</span>
-          <span>Designed with high-speed Groq AI reasoning engine.</span>
+          <span>Built with Groq for fast AI responses.</span>
         </div>
       </footer>
     </div>

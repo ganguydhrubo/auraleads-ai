@@ -34,6 +34,7 @@ interface AppContextType {
   updateSettings: (settings: Partial<AppState["settings"]>) => Promise<void>;
   updateIntegrations: (integrations: Partial<AppState["integrations"]>) => Promise<void>;
   upgradePlan: (plan: "Silver" | "Gold" | "Platinum") => Promise<void>;
+  cancelPlan: () => Promise<void>;
   dismissSetupWidget: () => Promise<void>;
   completeOnboardingStep: (id: number) => Promise<void>;
   tourOpen: boolean;
@@ -560,6 +561,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await supabase.from("workspaces").update({ plan }).eq("id", wsId());
   };
 
+  // Self-serve — there's no recurring subscription to cancel provider-side
+  // (every upgrade is a one-time PayPal/Razorpay order, not a Subscriptions
+  // API charge), so "cancel" just means downgrading back to Trial quotas
+  // immediately. No proration/refund, matching the existing non-refundable
+  // billing terms.
+  const cancelPlan = async () => {
+    setState((prev) => ({ ...prev, user: { ...prev.user, plan: "Trial", limits: PLAN_LIMITS.Trial } }));
+    await supabase.from("workspaces").update({ plan: "Trial" }).eq("id", wsId());
+  };
+
   const dismissSetupWidget = async () => {
     setState((prev) => ({ ...prev, setupDismissed: true }));
     await supabase.from("onboarding_state").upsert({ workspace_id: wsId(), setup_dismissed: true });
@@ -595,6 +606,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateSettings,
         updateIntegrations,
         upgradePlan,
+        cancelPlan,
         dismissSetupWidget,
         completeOnboardingStep,
         tourOpen,

@@ -1,21 +1,24 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Privacy Policy" };
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  alternates: { canonical: "https://auraleads.online/privacy" },
+};
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-8">
         <div>
-          <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads.ai</Link>
+          <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads AI</Link>
           <h1 className="text-3xl font-bold mt-4">Privacy Policy</h1>
           <p className="text-sm text-muted-foreground mt-1">Last updated: September 27, 2026</p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-sm leading-relaxed text-foreground">
           <p>
-            <strong>AuraLeads AI</strong> ("we", "us") operates auraleads.online. This policy
+            <strong>Dhrubo AI Studio</strong> ("we", "us") operates AuraLeads AI at auraleads.online. This policy
             explains what data we collect, why, and how you can control it.
           </p>
 
@@ -57,13 +60,14 @@ export default function PrivacyPolicyPage() {
 
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Children's privacy</h2>
-            <p>This service is not directed to individuals under 13, and we do not knowingly collect data from them.</p>
+            <p>This service requires account holders to be at least 18 (see Terms of Service) and is not directed to anyone under 18 — we do not knowingly collect data from minors.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Contact</h2>
             <p>
-              Questions about this policy: contact@auraleads.online. Based in Kolkata, India. Governed by Indian law.
+              Questions about this policy: contact@auraleads.online. Based in Kolkata, India. Governed by the laws
+              of India, subject to the exclusive jurisdiction of the courts of Kolkata.
             </p>
           </section>
 

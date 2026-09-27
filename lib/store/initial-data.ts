@@ -13,7 +13,7 @@ export function emptyAppState(overrides?: Partial<AppState>): AppState {
       isPlatformAdmin: false,
       plan: "Trial",
       trialEndsAt: new Date(Date.now() + 7 * 86400000).toISOString(),
-      limits: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200, xActionsDay: 10 },
+      limits: { hashtagsWeek: 10, leadsDay: 10, dmsDay: 15, xActionsDay: 10 },
       usage: { hashtagsUsed: 0, leadsToday: 0, dmsSentToday: 0 },
     },
     setupDismissed: false,
@@ -79,13 +79,20 @@ export function emptyAppState(overrides?: Partial<AppState>): AppState {
 
 export const initialAppState = emptyAppState();
 
-export const PLAN_LIMITS: Record<"Trial" | "Silver" | "Gold" | "Platinum", { hashtagsWeek: number; leadsDay: number; dmsHour: number; xActionsDay: number }> = {
+export const PLAN_LIMITS: Record<"Trial" | "Silver" | "Gold" | "Platinum", { hashtagsWeek: number; leadsDay: number; dmsDay: number; xActionsDay: number }> = {
   // xActionsDay is a placeholder sized to keep worst-case X API cost a small
   // fraction of each tier's price (at roughly $0.01-0.02/action: Silver's 20
   // caps X cost around $0.20-0.40/day, well under its $20/mo price) — a
   // business decision to confirm/adjust, not a precise calculation.
-  Trial: { hashtagsWeek: 10, leadsDay: 10, dmsHour: 200, xActionsDay: 10 },
-  Silver: { hashtagsWeek: 10, leadsDay: 40, dmsHour: 200, xActionsDay: 20 },
-  Gold: { hashtagsWeek: 20, leadsDay: 80, dmsHour: 200, xActionsDay: 60 },
-  Platinum: { hashtagsWeek: 30, leadsDay: 200, dmsHour: 200, xActionsDay: 150 },
+  //
+  // dmsDay used to be "dmsHour: 200" for every tier — a number that implied
+  // up to 4,800 sends/day if sustained, an unsafe volume for Instagram
+  // specifically (independent advisory guidance puts a safe ceiling around
+  // 20-35 DMs/day on a warmed account) and directly contradicted the
+  // "safety caps" language shown next to it on the landing page. These are
+  // deliberately modest, safe-by-design numbers instead of a big round one.
+  Trial: { hashtagsWeek: 10, leadsDay: 10, dmsDay: 15, xActionsDay: 10 },
+  Silver: { hashtagsWeek: 10, leadsDay: 40, dmsDay: 20, xActionsDay: 20 },
+  Gold: { hashtagsWeek: 20, leadsDay: 80, dmsDay: 35, xActionsDay: 60 },
+  Platinum: { hashtagsWeek: 30, leadsDay: 200, dmsDay: 50, xActionsDay: 150 },
 };

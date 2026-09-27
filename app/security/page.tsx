@@ -1,14 +1,17 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Security Overview" };
+export const metadata: Metadata = {
+  title: "Security Overview",
+  alternates: { canonical: "https://auraleads.online/security" },
+};
 
 export default function SecurityOverviewPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-8">
         <div>
-          <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads.ai</Link>
+          <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads AI</Link>
           <h1 className="text-3xl font-bold mt-4">Security Overview</h1>
           <p className="text-sm text-muted-foreground mt-1">Last updated: September 27, 2026</p>
         </div>

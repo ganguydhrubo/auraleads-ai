@@ -13,9 +13,18 @@ import {
 import { useApp } from "@/lib/store/app-store";
 
 export function BillingView() {
-  const { state, setChatOpen, refresh } = useApp();
+  const { state, setChatOpen, refresh, cancelPlan } = useApp();
   const [selectedPlanForModal, setSelectedPlanForModal] = useState<"Silver" | "Gold" | "Platinum" | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancel = async () => {
+    setCancelling(true);
+    await cancelPlan();
+    setCancelling(false);
+    setShowCancelConfirm(false);
+  };
 
   const plans = [
     {
@@ -25,11 +34,11 @@ export function BillingView() {
       desc: "Ideal for solo SDRs and boutique lead-gen consultants.",
       hashtagsWeek: 10,
       leadsDay: 40,
-      dmsHour: 200,
+      dmsDay: 20,
       features: [
         "10 Hashtags per weekly cycle",
         "40 Qualified leads per day",
-        "200 DMs per hour pacing limit",
+        "20 safe outreach DMs/day",
         "Instagram account integration",
         "AI-powered hashtag validation",
         "AI personalized emails & DMs",
@@ -43,11 +52,11 @@ export function BillingView() {
       desc: "Our most popular tier for fast-growing agencies & DTC brands.",
       hashtagsWeek: 20,
       leadsDay: 80,
-      dmsHour: 200,
+      dmsDay: 35,
       features: [
         "20 Hashtags per weekly cycle",
         "80 Qualified leads per day",
-        "200 DMs per hour pacing limit",
+        "35 safe outreach DMs/day",
         "Unified DM + Email sequences",
         "Real business contact enrichment",
         "Priority support access",
@@ -61,14 +70,14 @@ export function BillingView() {
       desc: "High-volume prospecting machine for growth marketing teams.",
       hashtagsWeek: 30,
       leadsDay: 200,
-      dmsHour: 200,
+      dmsDay: 50,
       features: [
         "30 Hashtags per weekly cycle",
         "200 Qualified leads per day",
-        "200 DMs per hour pacing limit",
+        "50 safe outreach DMs/day",
         "AI Instagram Auto-Replies engine",
         "Advanced yield analytics",
-        "Dedicated account specialist",
+        "WhatsApp priority support",
       ],
       popular: false,
     },
@@ -195,8 +204,16 @@ export function BillingView() {
             <span>·</span>
             <span>Daily Leads: <strong className="text-foreground">{state.user.limits.leadsDay}/day</strong></span>
             <span>·</span>
-            <span>DM Dispatch: <strong className="text-foreground">{state.user.limits.dmsHour}/hr</strong></span>
+            <span>DM Dispatch: <strong className="text-foreground">{state.user.limits.dmsDay}/day</strong></span>
           </div>
+          {state.user.plan !== "Trial" && (
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              className="text-[11px] text-muted-foreground hover:text-rose-600 underline underline-offset-2 pt-1"
+            >
+              Cancel plan
+            </button>
+          )}
         </div>
 
         <div className="p-4 rounded-xl bg-muted/30 border border-border text-xs space-y-2 max-w-sm">
@@ -308,7 +325,7 @@ export function BillingView() {
       <div className="p-4 bg-muted/20 border border-border rounded-xl flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>Payments are processed securely via PayPal or major credit/debit cards. To cancel or change your plan, contact support.</span>
+          <span>Payments are processed securely via PayPal or Razorpay (UPI/cards/wallets). Cancel or change your plan anytime, above.</span>
         </div>
         <span className="font-mono text-[11px]">256-bit TLS Encrypted</span>
       </div>
@@ -339,7 +356,7 @@ export function BillingView() {
                 </span>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Quota upgrades instantly on payment. To cancel or change your plan, contact support.
+                Quota upgrades instantly on payment. You can cancel or change your plan anytime from this page.
               </p>
             </div>
 
@@ -372,6 +389,40 @@ export function BillingView() {
                 </span>
               </button>
               <p className="text-[10px] text-muted-foreground text-center">Razorpay checkout is in Test Mode — no real charge yet.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Confirmation Modal — self-serve, immediate downgrade to Trial.
+          No proration/refund: matches the existing non-refundable billing terms. */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 space-y-5 animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground">Cancel {state.user.plan} plan?</h3>
+              <button onClick={() => setShowCancelConfirm(false)} className="p-1 rounded text-muted-foreground hover:text-foreground" aria-label="Close">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your plan downgrades to Trial quotas immediately. Fees already paid are non-refundable. You can
+              upgrade again anytime.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 py-2.5 rounded-xl border border-border text-foreground text-xs font-semibold hover:bg-muted"
+              >
+                Keep my plan
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-bold hover:bg-rose-700 disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling..." : "Cancel plan"}
+              </button>
             </div>
           </div>
         </div>

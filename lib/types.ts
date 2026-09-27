@@ -12,7 +12,13 @@ export interface WorkspaceUser {
   limits: {
     hashtagsWeek: number;
     leadsDay: number;
-    dmsHour: number;
+    // A genuine SAFE DAILY ceiling, not a per-hour pacing number — this used
+    // to be called dmsHour and set to 200 for every tier, which (a) implied
+    // up to 4,800 DMs/day if sustained, an unsafe Instagram-ban-inviting
+    // volume that contradicted the "safety caps" language shown next to it,
+    // and (b) still isn't enforced server-side anywhere (marketing/display
+    // only for now — see SECURITY_AUDIT.md for the real-enforcement gap).
+    dmsDay: number;
     // Every X action (DM send, profile lookup) costs real money under X's
     // pay-per-use API pricing, billed to the platform's Developer App, not
     // the customer — this caps that cost per workspace. Every other channel

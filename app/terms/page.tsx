@@ -1,21 +1,24 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Terms of Service" };
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  alternates: { canonical: "https://auraleads.online/terms" },
+};
 
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-3xl mx-auto px-6 py-16 space-y-8">
         <div>
-          <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads.ai</Link>
+          <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads AI</Link>
           <h1 className="text-3xl font-bold mt-4">Terms of Service</h1>
           <p className="text-sm text-muted-foreground mt-1">Last updated: September 27, 2026</p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-sm leading-relaxed text-foreground">
           <p>
-            These terms govern your use of AuraLeads AI, operated by <strong>AuraLeads AI</strong> (Kolkata, India). By using
+            These terms govern your use of AuraLeads AI, operated by <strong>Dhrubo AI Studio</strong> (Kolkata, India). By using
             the service, you agree to them.
           </p>
 
@@ -68,7 +71,7 @@ export default function TermsOfServicePage() {
 
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Governing law</h2>
-            <p>These terms are governed by the laws of India.</p>
+            <p>These terms are governed by the laws of India, subject to the exclusive jurisdiction of the courts of Kolkata.</p>
           </section>
 
           <section>
