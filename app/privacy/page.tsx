@@ -10,12 +10,12 @@ export default function PrivacyPolicyPage() {
         <div>
           <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads.ai</Link>
           <h1 className="text-3xl font-bold mt-4">Privacy Policy</h1>
-          <p className="text-sm text-muted-foreground mt-1">Last updated: [DATE — fill in when this is finalized]</p>
+          <p className="text-sm text-muted-foreground mt-1">Last updated: September 27, 2026</p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-sm leading-relaxed text-foreground">
           <p>
-            <strong>[LEGAL ENTITY NAME]</strong> ("we", "us", "AuraLeads AI") operates auraleads.online. This policy
+            <strong>AuraLeads AI</strong> ("we", "us") operates auraleads.online. This policy
             explains what data we collect, why, and how you can control it.
           </p>
 
@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-lg font-bold mt-8 mb-2">Data retention</h2>
             <p>
               We retain your data while your account is active. You can request deletion of your account and
-              associated data by contacting us at [SUPPORT EMAIL].
+              associated data by contacting us at contact@auraleads.online.
             </p>
           </section>
 
@@ -63,14 +63,13 @@ export default function PrivacyPolicyPage() {
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Contact</h2>
             <p>
-              Questions about this policy: [SUPPORT EMAIL]. Business address: [BUSINESS ADDRESS]. Jurisdiction: [YOUR
-              JURISDICTION].
+              Questions about this policy: contact@auraleads.online. Based in Kolkata, India. Governed by Indian law.
             </p>
           </section>
 
           <p className="text-xs text-muted-foreground italic pt-4 border-t border-border">
-            This is a functional starting template, not a substitute for legal advice — have it reviewed before
-            relying on it, and fill in the bracketed placeholders with your real business details.
+            This is a functional policy, not a substitute for independent legal advice — have it reviewed by a
+            qualified professional for your specific situation before relying on it exclusively.
           </p>
         </div>
       </div>

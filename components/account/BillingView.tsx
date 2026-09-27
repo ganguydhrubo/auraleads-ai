@@ -368,7 +368,7 @@ export function BillingView() {
                 <span>
                   {isProcessing
                     ? "Opening Razorpay..."
-                    : `Pay with UPI / Card / Wallet (₹${selectedPlanForModal === "Silver" ? "1,499" : selectedPlanForModal === "Gold" ? "3,999" : "7,999"})`}
+                    : `Pay with UPI / Card / Wallet (₹${selectedPlanForModal === "Silver" ? "999" : selectedPlanForModal === "Gold" ? "2,499" : "4,999"})`}
                 </span>
               </button>
               <p className="text-[10px] text-muted-foreground text-center">Razorpay checkout is in Test Mode — no real charge yet.</p>

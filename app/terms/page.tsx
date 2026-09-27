@@ -10,12 +10,12 @@ export default function TermsOfServicePage() {
         <div>
           <Link href="/" className="text-sm text-primary hover:underline">← Back to AuraLeads.ai</Link>
           <h1 className="text-3xl font-bold mt-4">Terms of Service</h1>
-          <p className="text-sm text-muted-foreground mt-1">Last updated: [DATE — fill in when this is finalized]</p>
+          <p className="text-sm text-muted-foreground mt-1">Last updated: September 27, 2026</p>
         </div>
 
         <div className="prose prose-sm max-w-none space-y-6 text-sm leading-relaxed text-foreground">
           <p>
-            These terms govern your use of AuraLeads AI, operated by <strong>[LEGAL ENTITY NAME]</strong>. By using
+            These terms govern your use of AuraLeads AI, operated by <strong>AuraLeads AI</strong> (Kolkata, India). By using
             the service, you agree to them.
           </p>
 
@@ -42,8 +42,9 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Billing</h2>
             <p>
-              Paid plans are billed monthly via PayPal. Fees are non-refundable except where required by law. We
-              may change prices with at least 30 days' notice. Your account may be suspended for non-payment.
+              Paid plans are billed monthly via PayPal (USD) or Razorpay (INR — UPI, cards, netbanking, wallets).
+              Fees are non-refundable except where required by law. We may change prices with at least 30 days'
+              notice. Your account may be suspended for non-payment.
             </p>
           </section>
 
@@ -60,24 +61,24 @@ export default function TermsOfServicePage() {
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Limitation of liability</h2>
             <p>
-              The service is provided "as is". To the maximum extent permitted by law, [LEGAL ENTITY NAME] is not
+              The service is provided "as is". To the maximum extent permitted by law, AuraLeads AI is not
               liable for indirect, incidental, or consequential damages arising from your use of the service.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Governing law</h2>
-            <p>These terms are governed by the laws of [YOUR JURISDICTION].</p>
+            <p>These terms are governed by the laws of India.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-bold mt-8 mb-2">Contact</h2>
-            <p>Questions about these terms: [SUPPORT EMAIL].</p>
+            <p>Questions about these terms: contact@auraleads.online.</p>
           </section>
 
           <p className="text-xs text-muted-foreground italic pt-4 border-t border-border">
-            This is a functional starting template, not a substitute for legal advice — have it reviewed before
-            relying on it, and fill in the bracketed placeholders with your real business details.
+            This is a functional policy, not a substitute for independent legal advice — have it reviewed by a
+            qualified professional for your specific situation before relying on it exclusively.
           </p>
         </div>
       </div>

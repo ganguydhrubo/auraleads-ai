@@ -1,13 +1,13 @@
 import crypto from "crypto";
 
-// Placeholder INR pricing — the app's PayPal prices ($20/$50/$100) were a
-// business decision made elsewhere; these are a reasonable first pass at
-// INR equivalents, NOT a precise FX conversion. Confirm/adjust before
-// relying on this for real Live-mode charges.
+// INR pricing set by the business owner directly (not an FX conversion of
+// the $20/$50/$100 USD tiers) — Indian customers won't pay $20/mo via
+// PayPal at that rate, so this is priced independently for the UPI/card
+// market instead of just converting currency.
 const PLAN_PRICES_INR_PAISE: Record<string, number> = {
-  Silver: 149900,
-  Gold: 399900,
-  Platinum: 799900,
+  Silver: 99900,
+  Gold: 249900,
+  Platinum: 499900,
 };
 
 export function planPriceInrPaise(plan: string): number | null {

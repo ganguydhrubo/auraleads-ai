@@ -694,13 +694,13 @@ export function LandingPage() {
             <ul className="space-y-1.5 text-[11px]">
               <li><Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-foreground">Terms of Service</Link></li>
-              <li><a href="#" className="hover:text-foreground">CAN-SPAM & GDPR</a></li>
-              <li><a href="#" className="hover:text-foreground">Security Overview</a></li>
+              <li><Link href="/gdpr" className="hover:text-foreground">CAN-SPAM & GDPR</Link></li>
+              <li><Link href="/security" className="hover:text-foreground">Security Overview</Link></li>
             </ul>
           </div>
         </div>
         <div className="max-w-6xl mx-auto pt-8 mt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px]">
-          <span>© 2026 AuraLeads AI Inc. All rights reserved.</span>
+          <span>© 2026 AuraLeads AI. All rights reserved.</span>
           <span>Designed with high-speed Groq AI reasoning engine.</span>
         </div>
       </footer>
