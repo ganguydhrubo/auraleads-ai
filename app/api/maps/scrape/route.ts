@@ -194,6 +194,7 @@ export async function POST(request: NextRequest) {
     // Fall back to OSM if Google's call itself failed (not for zero results,
     // which is a valid real outcome).
     if ("error" in outcome) {
+      console.error(`[maps/scrape] Google Places failed, falling back to OSM: ${outcome.error}`);
       if (typeof lat !== "number" || typeof lng !== "number") {
         const geo = await geocode(location);
         if (geo) {
