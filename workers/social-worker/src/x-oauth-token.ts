@@ -1,5 +1,9 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+// Ported from lib/x/oauth-token.ts in the main app — this worker is a
+// separate deployable package (its own tsconfig/rootDir) so it can't import
+// across that boundary. Keep in sync if the main app's version changes.
+//
 // X OAuth 2.0 user-context access tokens live for ~2 hours; the
 // offline.access scope grants a refresh_token so a connected account keeps
 // working indefinitely without the customer reconnecting. X rotates the
