@@ -20,6 +20,8 @@ interface AppContextType {
   startLeadGenerationCycle: () => Promise<{ ok: boolean; message: string }>;
   updateInstagramLeadDecision: (id: string, decision: "matched" | "blocked") => Promise<void>;
   sendInstagramLeadDm: (id: string) => Promise<{ ok: boolean; message: string }>;
+  sendLeadEmail: (id: string) => Promise<{ ok: boolean; message: string }>;
+  sendXLeadDm: (id: string) => Promise<{ ok: boolean; message: string }>;
   revealMapsLead: (id: string) => Promise<void>;
   enrichMapsLead: (id: string) => Promise<void>;
   addMapsDiscoveryBatch: (location: string, query: string, lat?: number, lng?: number) => Promise<{ ok: boolean; message: string }>;
@@ -316,6 +318,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return { ok: true, message: "Queued — the automation worker will send it shortly, pacing to stay human-like." };
   };
 
+  const queueMessage = (platform: "email" | "x") => async (id: string) => {
+    const res = await fetch("/api/automation/jobs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ platform, action: "message", payload: { leadId: id } }),
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, message: data.error || `Could not queue this ${platform === "email" ? "email" : "DM"}.` };
+    if (data.queuedVia === "scheduled") {
+      return { ok: true, message: `Queued — will send on the next scheduled run (~${data.etaMinutes} min).` };
+    }
+    return { ok: true, message: `Queued — the automation worker will send it shortly, pacing to stay human-like.` };
+  };
+
+  // Cold email: there was no send path for this before — only a
+  // reply-to-an-existing-conversation route existed. Now goes through the
+  // same queue+worker as Instagram/LinkedIn/X so it can run for free on the
+  // scheduled GitHub Actions worker (see workers/social-worker/src/email.ts).
+  const sendLeadEmail = queueMessage("email");
+
+  // Cold X DM — same queue+worker pattern, moved off the old synchronous
+  // /api/channels/x/send-dm route so it can run on the scheduled worker too.
+  const sendXLeadDm = queueMessage("x");
+
   const revealMapsLead = async (id: string) => {
     const res = await fetch("/api/channels/maps/enrich", {
       method: "POST",
@@ -611,6 +637,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         startLeadGenerationCycle,
         updateInstagramLeadDecision,
         sendInstagramLeadDm,
+        sendLeadEmail,
+        sendXLeadDm,
         revealMapsLead,
         enrichMapsLead,
         addMapsDiscoveryBatch,

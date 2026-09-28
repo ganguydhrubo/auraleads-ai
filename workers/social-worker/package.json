@@ -2,7 +2,7 @@
   "name": "auraleads-social-worker",
   "version": "1.0.0",
   "private": true,
-  "description": "Standalone poller that runs LinkedIn & Instagram browser-automation jobs queued by the AuraLeads AI app. Deploy separately from Vercel (Railway/Render/a small VPS) — Playwright needs a long-lived process, which serverless functions can't provide.",
+  "description": "Poller that runs LinkedIn/Instagram browser-automation jobs, plus email/X sends, queued by the AuraLeads AI app. Two run modes: a long-running process (Railway/Render/a small VPS/laptop — Playwright needs a long-lived process for LinkedIn/Instagram) and `--once` (GitHub Actions, email/X only by default — see .github/workflows/social-worker.yml).",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -12,10 +12,13 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.117.1",
     "dotenv": "^16.4.5",
-    "playwright": "^1.47.0"
+    "nodemailer": "^10.0.10",
+    "playwright": "^1.47.0",
+    "twitter-api-v2": "^1.18.2"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
+    "@types/nodemailer": "^6.4.16",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   }

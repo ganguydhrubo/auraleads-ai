@@ -1,0 +1,92 @@
+name: social-worker (scheduled)
+
+# Runs the social-worker in --once mode on a schedule, so email/X outreach
+# jobs get processed for free without a laptop or a paid host. Instagram and
+# LinkedIn stay OFF this workflow by default — GitHub-hosted runners use
+# shared US datacenter IPs, which both platforms flag for browser-automation
+# sessions. The always-on laptop/VPS worker keeps handling those two exactly
+# as before.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      channels:
+        description: "Comma-separated channels to process (never include instagram/linkedin here)"
+        required: false
+        default: "email,x"
+      max_jobs:
+        description: "Max jobs to process in this run"
+        required: false
+        default: "10"
+
+concurrency:
+  group: social-worker
+  cancel-in-progress: false
+
+jobs:
+  run-once:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: workers/social-worker/package-lock.json
+
+      - name: Install worker dependencies
+        working-directory: workers/social-worker
+        run: npm ci --ignore-scripts
+
+      - name: Get installed Playwright version
+        id: playwright-version
+        working-directory: workers/social-worker
+        run: echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        working-directory: workers/social-worker
+        run: npx playwright install --with-deps chromium
+
+      - name: Build worker
+        working-directory: workers/social-worker
+        run: npm run build
+
+      - name: Run social-worker (once)
+        working-directory: workers/social-worker
+        run: |
+          set -o pipefail
+          node dist/index.js --once 2>&1 | tee run.log
+        env:
+          WORKER_MODE: once
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SESSION_ENCRYPTION_KEY: ${{ secrets.SESSION_ENCRYPTION_KEY }}
+          WORKER_CHANNELS: ${{ github.event.inputs.channels || 'email,x' }}
+          MAX_JOBS_PER_RUN: ${{ github.event.inputs.max_jobs || '10' }}
+          WORKER_SCHEDULE_INTERVAL_MIN: "30"
+
+      - name: Job summary
+        if: always()
+        working-directory: workers/social-worker
+        run: |
+          {
+            echo "### social-worker run"
+            echo ""
+            if [ -f run.log ] && grep -q "SOCIAL_WORKER_SUMMARY" run.log; then
+              echo "- $(grep 'SOCIAL_WORKER_SUMMARY' run.log | tail -1 | sed 's/^.*SOCIAL_WORKER_SUMMARY //')"
+            else
+              echo "- worker exited without a summary line — check the run logs"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

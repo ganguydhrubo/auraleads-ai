@@ -26,7 +26,7 @@ interface HashtagsLeadsViewProps {
 }
 
 export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
-  const { state, startLeadGenerationCycle, updateInstagramLeadDecision, sendInstagramLeadDm, showToast } = useApp();
+  const { state, startLeadGenerationCycle, updateInstagramLeadDecision, sendInstagramLeadDm, sendLeadEmail, showToast } = useApp();
   const [decisionFilter, setDecisionFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLead, setSelectedLead] = useState<InstagramLead | null>(null);
@@ -336,6 +336,23 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
                 <div className="p-3 rounded-lg border border-border bg-background text-foreground text-xs font-mono whitespace-pre-line leading-relaxed">
                   {selectedLead.generatedEmail || "No email generated yet."}
                 </div>
+                {selectedLead.generatedEmail && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={async () => {
+                        const result = await sendLeadEmail(selectedLead.id);
+                        showToast(result.message, result.ok ? "info" : "error");
+                        if (result.ok) setSelectedLead({ ...selectedLead, emailSent: true });
+                      }}
+                      disabled={!selectedLead.email || selectedLead.emailSent}
+                      title={!selectedLead.email ? "This lead has no email address on file" : undefined}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-muted border border-border disabled:opacity-40"
+                    >
+                      <Mail className="w-3 h-3" />
+                      <span>{selectedLead.emailSent ? "Email Sent" : "Send Email"}</span>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Decision switchers */}
