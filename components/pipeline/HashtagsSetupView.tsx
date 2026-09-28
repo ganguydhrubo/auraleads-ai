@@ -61,7 +61,8 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
   };
 
   const weeklyCap = state.user.limits.hashtagsWeek;
-  const usedCount = state.hashtags.length;
+  const usedCount = state.hashtags.filter((h) => h.active).length;
+  const atCap = !state.user.isUnlimited && usedCount >= weeklyCap;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -74,9 +75,15 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
           <div>
             <h2 className="text-sm font-semibold text-foreground">Weekly Hashtag Capacity</h2>
             <p className="text-xs text-muted-foreground">
-              You are using <span className="font-semibold text-foreground">{usedCount}</span> of{" "}
-              <span className="font-semibold text-foreground">{weeklyCap}</span> allowed hashtags on your{" "}
-              <span className="font-semibold text-primary">{state.user.plan}</span> plan.
+              {state.user.isUnlimited ? (
+                <>You have <span className="font-semibold text-primary">unlimited</span> hashtags on the Owner plan.</>
+              ) : (
+                <>
+                  You are using <span className="font-semibold text-foreground">{usedCount}</span> of{" "}
+                  <span className="font-semibold text-foreground">{weeklyCap}</span> allowed hashtags on your{" "}
+                  <span className="font-semibold text-primary">{state.user.plan}</span> plan.
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -158,12 +165,12 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
             </div>
             <button
               onClick={handleGenerate}
-              disabled={!description.trim() || isGenerating || usedCount >= weeklyCap}
-              title={usedCount >= weeklyCap ? `You've used all ${weeklyCap} hashtag slots this week` : undefined}
+              disabled={!description.trim() || isGenerating || atCap}
+              title={atCap ? `You've used all ${weeklyCap} hashtag slots this week` : undefined}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
             >
               <Sparkles className={`w-4 h-4 ${isGenerating ? "animate-spin" : ""}`} />
-              <span>{isGenerating ? "Generating & Validating..." : usedCount >= weeklyCap ? "Weekly Limit Reached" : "Generate Hashtags"}</span>
+              <span>{isGenerating ? "Generating & Validating..." : atCap ? "Weekly Limit Reached" : "Generate Hashtags"}</span>
             </button>
           </div>
         </div>
@@ -180,7 +187,7 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
             </p>
           </div>
           <span className="text-xs font-medium text-muted-foreground">
-            {usedCount}/{weeklyCap} slots used
+            {state.user.isUnlimited ? "Unlimited" : `${usedCount}/${weeklyCap} slots used`}
           </span>
         </div>
 
@@ -191,14 +198,14 @@ export function HashtagsSetupView({ setCurrentView }: HashtagsSetupViewProps) {
               type="text"
               value={manualTag}
               onChange={(e) => setManualTag(e.target.value)}
-              placeholder={usedCount >= weeklyCap ? `Weekly limit reached (${weeklyCap}/${weeklyCap}) — remove a hashtag to add another` : "Add custom hashtag (e.g. #marketingconsultant)..."}
-              disabled={usedCount >= weeklyCap}
+              placeholder={atCap ? `Weekly limit reached (${weeklyCap}/${weeklyCap}) — remove a hashtag to add another` : "Add custom hashtag (e.g. #marketingconsultant)..."}
+              disabled={atCap}
               className="flex-1 text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-foreground disabled:opacity-60"
             />
             <button
               type="submit"
-              disabled={!manualTag.trim() || usedCount >= weeklyCap}
-              title={usedCount >= weeklyCap ? `You've used all ${weeklyCap} hashtag slots this week` : undefined}
+              disabled={!manualTag.trim() || atCap}
+              title={atCap ? `You've used all ${weeklyCap} hashtag slots this week` : undefined}
               className="px-4 py-2 bg-secondary text-secondary-foreground text-xs font-semibold rounded-lg hover:bg-muted border border-border disabled:opacity-40"
             >
               Add Hashtag

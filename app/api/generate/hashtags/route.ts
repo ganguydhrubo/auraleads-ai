@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { PLAN_LIMITS } from "@/lib/store/initial-data";
+import { isUnlimited } from "@/lib/entitlements";
 
 export async function POST(request: NextRequest) {
   // Was reachable with no login at all — any caller could run up real Groq
@@ -12,21 +13,32 @@ export async function POST(request: NextRequest) {
 
   const supabase = createSupabaseServerClient();
 
+  // Anti-abuse/cost-control throttle (protects the shared Groq spend from a
+  // runaway loop) — this is not a plan benefit, so it applies to everyone,
+  // unlimited account included.
   const rate = await checkRateLimit(supabase, session.workspaceId, "gen_hashtags", { max: 10, windowSeconds: 60 });
   if (!rate.ok) return NextResponse.json({ error: rate.error }, { status: 429 });
 
-  const { data: workspace } = await supabase.from("workspaces").select("plan").eq("id", session.workspaceId).single();
-  const plan = (workspace?.plan || "Trial") as keyof typeof PLAN_LIMITS;
-  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-  const { count: usedThisWeek } = await supabase
-    .from("hashtags")
-    .select("id", { count: "exact", head: true })
-    .eq("workspace_id", session.workspaceId)
-    .gte("created_at", weekAgo);
+  const unlimited = await isUnlimited(session.userId);
+  if (!unlimited) {
+    const { data: workspace } = await supabase.from("workspaces").select("plan").eq("id", session.workspaceId).single();
+    const plan = (workspace?.plan || "Trial") as keyof typeof PLAN_LIMITS;
+    // Count currently-ACTIVE hashtags, not ones added in a trailing 7-day
+    // window — the old window-based count let a hashtag age out and quietly
+    // free a slot without ever being deleted, while deleting one added
+    // earlier this week didn't free a slot until the window rolled over.
+    // "How many of your weeklyCap slots are occupied right now" is the
+    // model that matches deletion actually freeing a slot immediately.
+    const { count: activeCount } = await supabase
+      .from("hashtags")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", session.workspaceId)
+      .eq("active", true);
 
-  const weeklyCap = PLAN_LIMITS[plan]?.hashtagsWeek ?? PLAN_LIMITS.Trial.hashtagsWeek;
-  if ((usedThisWeek || 0) >= weeklyCap) {
-    return NextResponse.json({ error: `Weekly hashtag limit reached (${weeklyCap} on your ${plan} plan) — upgrade your plan for more, or wait for next week.` }, { status: 429 });
+    const weeklyCap = PLAN_LIMITS[plan]?.hashtagsWeek ?? PLAN_LIMITS.Trial.hashtagsWeek;
+    if ((activeCount || 0) >= weeklyCap) {
+      return NextResponse.json({ error: `Weekly hashtag limit reached (${weeklyCap} on your ${plan} plan) — remove a hashtag to free a slot, or upgrade your plan.` }, { status: 429 });
+    }
   }
 
   try {

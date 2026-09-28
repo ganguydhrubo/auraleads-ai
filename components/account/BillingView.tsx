@@ -187,10 +187,10 @@ export function BillingView() {
       <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 border border-amber-500/20">
-              {state.user.plan} Active
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${state.user.isUnlimited ? "bg-primary/10 text-primary border-primary/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}`}>
+              {state.user.isUnlimited ? "Owner — Unlimited" : `${state.user.plan} Active`}
             </span>
-            {state.user.plan === "Trial" && (
+            {!state.user.isUnlimited && state.user.plan === "Trial" && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-primary" />
                 {trialDaysRemaining > 0 ? `${trialDaysRemaining} day${trialDaysRemaining === 1 ? "" : "s"} remaining` : "Trial expired"}
@@ -199,14 +199,18 @@ export function BillingView() {
             )}
           </div>
           <h2 className="text-lg font-bold text-foreground">Current Plan Quotas</h2>
-          <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-1">
-            <span>Hashtags: <strong className="text-foreground">{state.user.limits.hashtagsWeek}/week</strong></span>
-            <span>·</span>
-            <span>Daily Leads: <strong className="text-foreground">{state.user.limits.leadsDay}/day</strong></span>
-            <span>·</span>
-            <span>DM Dispatch: <strong className="text-foreground">{state.user.limits.dmsDay}/day</strong></span>
-          </div>
-          {state.user.plan !== "Trial" && (
+          {state.user.isUnlimited ? (
+            <p className="text-xs text-muted-foreground pt-1">No plan limits, no trial expiry — every quota below is unlimited on this account.</p>
+          ) : (
+            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-1">
+              <span>Hashtags: <strong className="text-foreground">{state.user.limits.hashtagsWeek}/week</strong></span>
+              <span>·</span>
+              <span>Daily Leads: <strong className="text-foreground">{state.user.limits.leadsDay}/day</strong></span>
+              <span>·</span>
+              <span>DM Dispatch: <strong className="text-foreground">{state.user.limits.dmsDay}/day</strong></span>
+            </div>
+          )}
+          {!state.user.isUnlimited && state.user.plan !== "Trial" && (
             <button
               onClick={() => setShowCancelConfirm(true)}
               className="text-[11px] text-muted-foreground hover:text-rose-600 underline underline-offset-2 pt-1"
