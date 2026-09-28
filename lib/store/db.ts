@@ -213,6 +213,7 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
     messagesRes,
     campaignsRes,
     platformAdminRes,
+    unlimitedRes,
   ] = await Promise.all([
     supabase.from("workspaces").select("*").eq("id", workspaceId).single(),
     supabase.from("business_profiles").select("*").eq("workspace_id", workspaceId).maybeSingle(),
@@ -232,6 +233,12 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
     // Every user can only ever see their OWN row here (RLS), so this just
     // answers "am I on the allowlist", nothing more.
     supabase.from("platform_admins").select("user_id").eq("user_id", user.id).maybeSingle(),
+    // Queried directly with whatever client was passed in (browser or
+    // server) rather than via lib/entitlements.ts's isUnlimited(), which
+    // pulls in next/headers and can't be bundled into this file — db.ts is
+    // imported by the client-side store (lib/store/app-store.tsx). RLS
+    // (unlimited_accounts_select_self) only ever lets a user see their own row.
+    supabase.from("unlimited_accounts").select("user_id").eq("user_id", user.id).maybeSingle(),
   ]);
 
   const base = emptyAppState();
@@ -240,10 +247,16 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
   const leads = leadsRes.data || [];
   const messages = messagesRes.data || [];
   const today = new Date().toISOString().slice(0, 10);
-  const weekAgo = new Date(Date.now() - 7 * 86400000);
 
   const hashtags = (hashtagsRes.data || []).map(mapHashtag);
-  const hashtagsUsed = (hashtagsRes.data || []).filter((h: any) => new Date(h.created_at) > weekAgo).length;
+  // Was "added in the last 7 days" — a hashtag simply aged out of that
+  // window without ever being deleted, so the count silently reset every
+  // week regardless of how many were still actually active, while deleting
+  // a hashtag added just now still counted against you for the rest of the
+  // week. Count currently-active hashtags instead: a deterministic "how many
+  // of your weeklyCap slots are occupied right now" that a delete frees
+  // immediately. Matches the server-side check in app/api/generate/hashtags.
+  const hashtagsUsed = (hashtagsRes.data || []).filter((h: any) => h.active).length;
   const leadsToday = leads.filter((l: any) => (l.found_at || "").slice(0, 10) === today).length;
   const dmsSentToday = messages.filter((m: any) => m.sender === "me" && (m.created_at || "").slice(0, 10) === today).length;
 
@@ -256,6 +269,7 @@ export async function loadWorkspaceState(supabase: SupabaseClient): Promise<AppS
       role: membership.role as "user" | "admin",
       isPlatformAdmin: !!platformAdminRes.data,
       plan,
+      isUnlimited: !!unlimitedRes.data,
       trialEndsAt: workspace?.trial_ends_at || base.user.trialEndsAt,
       limits: PLAN_LIMITS[plan],
       usage: { hashtagsUsed, leadsToday, dmsSentToday },

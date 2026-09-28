@@ -5,6 +5,12 @@ import { decryptSecret } from "./crypto";
 import { applyLinkedInSession, searchLinkedInPeople, sendLinkedInConnectionRequest, sendLinkedInMessage } from "./linkedin";
 import { applyInstagramSession, searchInstagramHashtag, searchInstagramFollowers, sendInstagramDirectMessage } from "./instagram";
 import { sleep } from "./pacing";
+import { isWorkspaceUnlimited } from "./entitlements";
+
+// Kept in sync with lib/store/initial-data.ts's PLAN_LIMITS.leadsDay in the
+// main app — this worker is a separate deployable package (its own
+// tsconfig/rootDir), so it can't import across that boundary.
+const LEADS_DAY_BY_PLAN: Record<string, number> = { Trial: 10, Silver: 40, Gold: 80, Platinum: 200 };
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
   auth: { autoRefreshToken: false, persistSession: false },
@@ -167,7 +173,25 @@ async function runJob(job: Job) {
         .eq("workspace_id", job.workspace_id)
         .eq("platform", job.platform);
       const existingUsernames = new Set((existingLeads || []).map((l: any) => l.username));
-      const toInsert = found.filter((f) => !existingUsernames.has(f.username));
+      let toInsert = found.filter((f) => !existingUsernames.has(f.username));
+
+      // leadsDay was never enforced here at all — a "search" job could insert
+      // an unbounded number of new leads regardless of plan. It's a
+      // workspace-wide daily cap across every lead source, so count leads
+      // found today on ANY platform, not just this job's.
+      if (toInsert.length > 0 && !(await isWorkspaceUnlimited(supabase, job.workspace_id))) {
+        const { data: workspace } = await supabase.from("workspaces").select("plan").eq("id", job.workspace_id).single();
+        const dailyCap = LEADS_DAY_BY_PLAN[workspace?.plan] ?? LEADS_DAY_BY_PLAN.Trial;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const { count: foundToday } = await supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .eq("workspace_id", job.workspace_id)
+          .gte("found_at", todayStart.toISOString());
+        const remaining = Math.max(0, dailyCap - (foundToday || 0));
+        if (toInsert.length > remaining) toInsert = toInsert.slice(0, remaining);
+      }
 
       if (toInsert.length > 0) {
         await supabase.from("leads").insert(toInsert);
@@ -184,7 +208,8 @@ async function runJob(job: Job) {
     if (job.action === "connect" || job.action === "message") {
       const { data: settings } = await supabase.from("workspace_settings").select("linkedin").eq("workspace_id", job.workspace_id).maybeSingle();
       const limit = job.action === "connect" ? settings?.linkedin?.dailyConnectionLimit ?? 20 : settings?.linkedin?.dailyMessageLimit ?? 30;
-      const underCap = await checkDailyCap(job.workspace_id, job.platform, job.action, limit);
+      const unlimited = await isWorkspaceUnlimited(supabase, job.workspace_id);
+      const underCap = unlimited || (await checkDailyCap(job.workspace_id, job.platform, job.action, limit));
       if (!underCap) throw new Error(`Daily ${job.action} limit reached for ${job.platform} — try again tomorrow.`);
 
       const { data: lead } = await supabase.from("leads").select("*").eq("id", job.payload.leadId).single();

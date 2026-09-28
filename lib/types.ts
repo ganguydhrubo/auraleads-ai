@@ -8,6 +8,11 @@ export interface WorkspaceUser {
   // nodes, proxy pool) across every tenant.
   isPlatformAdmin: boolean;
   plan: "Trial" | "Silver" | "Gold" | "Platinum";
+  // True only for the DB-allowlisted owner account (unlimited_accounts /
+  // is_unlimited()). Never derived from anything client-supplied. `plan`
+  // above stays the workspace's real plan for billing/display; this flag is
+  // what actually bypasses every numeric cap.
+  isUnlimited: boolean;
   trialEndsAt: string;
   limits: {
     hashtagsWeek: number;

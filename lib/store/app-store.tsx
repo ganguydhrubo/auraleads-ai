@@ -122,15 +122,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       seen.add(key);
       return true;
     });
-    const generated: Hashtag[] = deduped.slice(0, state.user.limits.hashtagsWeek - state.hashtags.length);
+    // Cap is on currently-ACTIVE hashtags, matching the server-side check in
+    // app/api/generate/hashtags — an unlimited account has no cap at all.
+    const activeCount = state.hashtags.filter((h) => h.active).length;
+    const generated: Hashtag[] = state.user.isUnlimited ? deduped : deduped.slice(0, state.user.limits.hashtagsWeek - activeCount);
     if (generated.length === 0) {
       return { ok: true, message: "No new hashtags to add — you may already have similar ones, or you're at your weekly limit." };
     }
 
-    const { data: inserted } = await supabase
-      .from("hashtags")
-      .insert(
-        generated.map((h) => ({
+    // Insert one at a time: the DB has a case-insensitive unique constraint
+    // per workspace (0009_hashtag_case_insensitive_dedupe.sql) as a safety
+    // net behind the in-memory check above, and a single 23505 conflict
+    // shouldn't take the whole batch down with it.
+    const mapped: Hashtag[] = [];
+    for (const h of generated) {
+      const { data: row, error } = await supabase
+        .from("hashtags")
+        .insert({
           workspace_id: wsId(),
           tag: h.tag,
           source: "ai",
@@ -138,23 +146,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           posts_count: h.postsCount,
           relevance_score: h.relevanceScore,
           active: true,
-        }))
-      )
-      .select();
-
-    if (!inserted) {
-      return { ok: false, message: "Generated hashtags but couldn't save them — please try again." };
+        })
+        .select()
+        .single();
+      if (error) {
+        if (error.code !== "23505") return { ok: false, message: "Generated hashtags but couldn't save them — please try again." };
+        continue; // already exists for this workspace (case-insensitive) — skip, not fatal
+      }
+      mapped.push({
+        id: row.id,
+        tag: row.tag,
+        source: row.source,
+        validationScore: row.validation_score,
+        postsCount: row.posts_count,
+        relevanceScore: row.relevance_score,
+        active: row.active,
+      });
     }
 
-    const mapped: Hashtag[] = inserted.map((r: any) => ({
-      id: r.id,
-      tag: r.tag,
-      source: r.source,
-      validationScore: r.validation_score,
-      postsCount: r.posts_count,
-      relevanceScore: r.relevance_score,
-      active: r.active,
-    }));
+    if (mapped.length === 0) {
+      return { ok: true, message: "No new hashtags to add — you may already have similar ones, or you're at your weekly limit." };
+    }
+
     setState((prev) => ({
       ...prev,
       hashtags: [...mapped, ...prev.hashtags],
@@ -170,11 +183,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       showToast(`${clean} is already in your list.`, "error");
       return;
     }
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("hashtags")
       .insert({ workspace_id: wsId(), tag: clean, source: "manual", validation_score: 0, posts_count: "—", relevance_score: 0, active: true })
       .select()
       .single();
+    if (error) {
+      // Case-insensitive unique constraint caught a race the in-memory check above missed.
+      if (error.code === "23505") showToast(`${clean} is already in your list.`, "error");
+      return;
+    }
     if (data) {
       setState((prev) => ({
         ...prev,
@@ -325,7 +343,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const data = await res.json();
     if (!res.ok) return { ok: false, message: data.error || "Search failed." };
     await refresh();
-    return { ok: true, message: `Found ${data.count} real business${data.count === 1 ? "" : "es"} near "${location}".` };
+    const found = `Found ${data.count} real business${data.count === 1 ? "" : "es"} near "${location}".`;
+    return { ok: true, message: data.capped ? `${found} Your daily lead limit was reached, so some results weren't saved — upgrade your plan or try again tomorrow.` : found };
   };
 
   // Real send routes per channel — each one calls the actual platform API

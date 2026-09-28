@@ -91,7 +91,7 @@ export function HashtagsLeadsView({ setCurrentView }: HashtagsLeadsViewProps) {
             </div>
             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
               <span className="font-semibold text-foreground">
-                {state.user.usage.leadsToday}/{state.user.limits.leadsDay}
+                {state.user.isUnlimited ? `${state.user.usage.leadsToday} (unlimited)` : `${state.user.usage.leadsToday}/${state.user.limits.leadsDay}`}
               </span>
               <span>leads today</span>
               <span>·</span>

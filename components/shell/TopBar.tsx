@@ -85,7 +85,7 @@ export function TopBar({ currentView, collapsed, setCollapsed }: TopBarProps) {
         <div className="hidden md:flex items-center gap-2 bg-muted/60 border border-border/80 px-3 py-1.5 rounded-full text-xs">
           <Clock className="w-3.5 h-3.5 text-primary" />
           <span className="font-medium text-foreground">
-            {state.user.usage.leadsToday}/{state.user.limits.leadsDay} Leads Today
+            {state.user.isUnlimited ? `${state.user.usage.leadsToday} Leads Today (Unlimited)` : `${state.user.usage.leadsToday}/${state.user.limits.leadsDay} Leads Today`}
           </span>
         </div>
 

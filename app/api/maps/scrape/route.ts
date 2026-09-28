@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient, getSessionWorkspaceId } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { isUnlimited } from "@/lib/entitlements";
+import { PLAN_LIMITS } from "@/lib/store/initial-data";
 
 // Overpass mirrors are raced with a 20s timeout each (see runOverpassSearch)
 // — the platform's default 10s function limit would kill the request before
@@ -267,10 +269,36 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // leadsDay was only ever a display number (state.user.limits.leadsDay) —
+  // nothing actually stopped a workspace from discovering more than its
+  // plan's daily cap through this route. It's a workspace-wide cap across
+  // every lead source (see lib/store/db.ts's leadsToday), so it's counted
+  // against leads found today on ANY platform, not just maps.
+  let capped = false;
+  if (toInsert.length > 0 && !(await isUnlimited(session.userId))) {
+    const { data: workspace } = await supabase.from("workspaces").select("plan").eq("id", session.workspaceId).single();
+    const plan = (workspace?.plan || "Trial") as keyof typeof PLAN_LIMITS;
+    const dailyCap = PLAN_LIMITS[plan]?.leadsDay ?? PLAN_LIMITS.Trial.leadsDay;
+
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: foundToday } = await supabase
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", session.workspaceId)
+      .gte("found_at", todayStart.toISOString());
+
+    const remaining = Math.max(0, dailyCap - (foundToday || 0));
+    if (toInsert.length > remaining) {
+      capped = true;
+      toInsert.length = remaining;
+    }
+  }
+
   if (toInsert.length > 0) {
     const { error: insertErr } = await supabase.from("leads").insert(toInsert);
     if (insertErr) return NextResponse.json({ error: insertErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ count: toInsert.length });
+  return NextResponse.json({ count: toInsert.length, capped });
 }

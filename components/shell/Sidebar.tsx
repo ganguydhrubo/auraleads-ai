@@ -418,9 +418,9 @@ export function Sidebar({ currentView, setCurrentView, collapsed }: SidebarProps
             <div className="text-xs font-semibold text-foreground truncate">{state.user.email}</div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[10px] font-medium px-1.5 py-0.2 bg-muted text-muted-foreground rounded">
-                {state.user.plan}
+                {state.user.isUnlimited ? "Owner — Unlimited" : state.user.plan}
               </span>
-              {state.user.plan === "Trial" && (
+              {!state.user.isUnlimited && state.user.plan === "Trial" && (
                 <span className="text-[10px] text-muted-foreground">
                   {Math.max(0, Math.ceil((new Date(state.user.trialEndsAt).getTime() - Date.now()) / 86400000))} days left
                 </span>
